@@ -24,6 +24,7 @@ const dataEntryField = [
     "street",
     "postalCode",
     "postalCode",
+    
 ];
 const loginField = ["email", "password"];
 const verifyOTPField = ["otp", "email"];

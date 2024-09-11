@@ -30,16 +30,12 @@ export const createDataEntry = async (req, res) => {
             });
         }
 
-        const dataEntry = await dataEntryModel
-            .find()
-            .where("yearOfEstablishment")
-            .equals(yearOfEstablishment)
-            .where("nameOfGEO")
-            .equals(nameOfGO)
-            .where("country")
-            .equals(country)
-            .where("nameOfChurch")
-            .equals(nameOfChurch);
+        const dataEntry = await dataEntryModel.findOne({
+            yearOfEstablishment,
+            nameOfGO: nameOfGO.toLowerCase(),
+            churchURL: churchURL.toLowerCase(),
+            nameOfChurch: nameOfChurch.toLowerCase(),
+        });
         if (dataEntry) {
             return res.status(400).json({
                 message: "Data entry already exists",
@@ -51,7 +47,7 @@ export const createDataEntry = async (req, res) => {
             nameOfChurch: nameOfChurch.toLowerCase(),
             nameOfGO: nameOfGO.toLowerCase(),
             denomination: denomination.toLowerCase(),
-            yearOfEstablishment: yearOfEstablishment, // No need to lowercase numbers
+            yearOfEstablishment: yearOfEstablishment,
             churchURL: churchURL.toLowerCase(),
             socialMediaPage: socialMediaPage,
             continent: continent.toLowerCase(),
@@ -66,6 +62,28 @@ export const createDataEntry = async (req, res) => {
 
         await newDataEntry.save();
         return res.status(200).json({ message: "Data created successfully" });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// Get all data entry
+export const getAllDataEntry = async (req, res) => {
+    try {
+        const dataEntry = await dataEntryModel.find();
+        console.log(dataEntry);
+        return res.status(200).json(dataEntry);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// get all data entry by id
+export const getDataEntryById = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const dataEntry = await dataEntryModel.findById(userId);
+        return res.status(200).json(dataEntry);
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }

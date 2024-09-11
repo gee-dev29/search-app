@@ -18,7 +18,6 @@ export const checkUser = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.userId.id;
         const user = await userModel.findById(userId).select("-password");
-        console.log(user);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
