@@ -12,7 +12,6 @@ router.route("/").post(checkUser, createDataEntry);
 router.route("/").get(jwtVerify, getAllDataEntry);
 router
     .route("/:id")
-    .get(jwtVerify, getDataEntryById)
     .get(jwtVerify, checkUser, getDataEntryById);
 
 export default router;

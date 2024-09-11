@@ -100,17 +100,12 @@ export const loginUser = async (req, res) => {
             });
         }
 
-        // Generate JWT token for authenticated user
-        const payload = {
-            id: user._id,
-            role: user.role,
-        };
-
         const otp = entity.generateOtp();
         const otpPayload = {
             otp: otp,
         };
         const _doc = req.user;
+        console.log(otpPayload)
         await entity.updateUserByEmail(email, otpPayload, userModel);
         const otpMessage = {
             recieverEmail: email,
@@ -118,7 +113,6 @@ export const loginUser = async (req, res) => {
             text: `Hello ${_doc.fullName}. Your OTP is ${otp.otp}. ${messages.OTP}`,
         };
         sendEmail(otpMessage);
-        // Successful login response
         return res.status(200).json({
             message: "User login successful",
             payload: {

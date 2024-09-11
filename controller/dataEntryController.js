@@ -78,13 +78,20 @@ export const getAllDataEntry = async (req, res) => {
     }
 };
 
-// get all data entry by id
+// get all data entry by the creatorId
 export const getDataEntryById = async (req, res) => {
     try {
         const userId = req.userId;
         console.log(userId);
-        const dataEntry = await dataEntryModel.findById(userId);
-        return res.status(200).json(dataEntry);
+        const dataEntries = await dataEntryModel
+            .find({ creatorId: userId })
+            .populate("creatorId");
+
+        if (!dataEntries || dataEntries.length === 0) {
+            return res.status(404).json({ message: "No data entries found" });
+        }
+        console.log(dataEntries);
+        return res.status(200).json(dataEntries);
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -98,4 +105,4 @@ export const getAllApprovedDataEntry = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
-}
+};
