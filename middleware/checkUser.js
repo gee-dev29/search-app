@@ -1,30 +1,31 @@
 import { userModel } from "../interface/userModel.js";
+import jwt from "jsonwebtoken";
 
 export const checkUser = async (req, res, next) => {
-    // Check if user ID exists in params or body
-    let userId;
-    if (req.params && req.params.id) {
-        userId = req.params.id;
-    } else if (req.body && req.body.id) {
-        userId = req.body.id;
+    try {
+        let token;
+        if (
+            req.headers.authorization &&
+            req.headers.authorization.startsWith("Bearer")
+        ) {
+            token = req.headers.authorization.split(" ")[1]; // Extract the token
+        }
+        if (!token) {
+            return res
+                .status(401)
+                .json({ message: "No token provided, authorization denied" });
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId.id;
+        const user = await userModel.findById(userId).select("-password");
+        console.log(user);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        req.user = user;
+        req.userId = userId;
+        next();
+    } catch (error) {
+        return res.status(401).json({ message: "Token is invalid or expired" });
     }
-
-    // Handle missing user ID
-    if (!userId) {
-        return res.status(400).json({ message: "User Id is required" });
-    }
-
-    // Find the user using userModel
-    const user = await userModel.findById({ _id: userId }).select("-password");
-
-    // Handle user not found
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
-
-    // Assign user to request object
-
-    req.userId = userId;
-    req.user = user;
-    next();
 };

@@ -10,6 +10,21 @@ const adminRegisterField = [
     "country",
     "postalCode"
 ];
+const dataEntryField = [
+    "nameOfChurch",
+    "nameOfGO",
+    "denomination",
+    "yearOfEstablishment",
+    "churchURL",
+    "socialMediaPage",
+    "continent",
+    "country",
+    "state",
+    "city",
+    "street",
+    "postalCode",
+    "postalCode",
+];
 const loginField = ["email", "password"];
 const verifyOTPField = ["otp", "email"];
 
@@ -19,4 +34,5 @@ export {
     adminRegisterField,
     loginField,
     verifyOTPField,
+    dataEntryField
 };

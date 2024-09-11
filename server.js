@@ -5,6 +5,7 @@ import consola from "consola";
 import dotenv from "dotenv";
 import authRoute from "./route/authRoute.js";
 import userRoute from "./route/userRoute.js";
+import dataEntryRoute from "./route/dataEntryRoute.js";
 import dbConnection from "./connection/dbConnection.js";
 // import { swaggerApi } from "./swaggerDoc.js";
 
@@ -34,6 +35,7 @@ dbConnection();
 
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/user", userRoute);
+app.use("/api/v1/data-entry", dataEntryRoute);
 app.listen(process.env.PORT || 8920, () => {
     consola.success({
         message: `Server started on port ${process.env.PORT || 8920}`,

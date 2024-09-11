@@ -105,8 +105,6 @@ export const loginUser = async (req, res) => {
             id: user._id,
             role: user.role,
         };
-        const token = entity.jwtSign(payload);
-        res.setHeader("Authorization", `Bearer ${token}`);
 
         const otp = entity.generateOtp();
         const otpPayload = {
@@ -211,7 +209,12 @@ export const registerAdmin = async (req, res) => {
 
         await notificationModel.insertMany(notifications);
 
-        await sendNotificationEmails(user.email, user.fullName, email, fullName);
+        await sendNotificationEmails(
+            user.email,
+            user.fullName,
+            email,
+            fullName
+        );
         return res.status(201).json({
             message: "Admin created successfully, notifications sent.",
         });
@@ -355,6 +358,12 @@ export const verifyOTP = async (req, res) => {
                         subject: "Account verification successful",
                         text: `Hello ${_doc.fullName}. ${messages.VERIFIED_OTP}`,
                     };
+                    const payload = {
+                        id: _doc._id,
+                        role: _doc.role,
+                    };
+                    const token = entity.jwtSign(payload);
+                    res.setHeader("Authorization", `Bearer ${token}`);
                     sendEmail(emailMessage);
                     return res.status(200).json({
                         message: "OTP verification successful",
@@ -384,7 +393,12 @@ export const sendRegistrationEmails = (email, fullName, otp) => {
     sendEmail(otpMessage);
 };
 
-export const sendNotificationEmails = (adminEmail, adminFullName, newAdminEmail, newAdminFullName) => {
+export const sendNotificationEmails = (
+    adminEmail,
+    adminFullName,
+    newAdminEmail,
+    newAdminFullName
+) => {
     // Notification email for the Super Admin
     const superAdminNotification = {
         recieverEmail: adminEmail,
@@ -401,7 +415,7 @@ export const sendNotificationEmails = (adminEmail, adminFullName, newAdminEmail,
 
     // Send both notification emails concurrently using Promise.all
     return Promise.all([
-        sendEmail(superAdminNotification), 
-        sendEmail(newAdminNotification),    
+        sendEmail(superAdminNotification),
+        sendEmail(newAdminNotification),
     ]);
 };
