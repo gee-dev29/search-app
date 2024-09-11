@@ -13,8 +13,8 @@ export const jwtVerify = async (req, res, next) => {
         if (!decoded) {
             return res.status(400).json({ message: "Invalid token" });
         }
-        req.id = decoded.userId.id;
-        req.role = decoded.userId.role;
+        req.id = decoded.id;
+        req.role = decoded.role;
         next();
     } catch (error) {
         return res.status(500).json({ message: "Internal Server Error" });

@@ -29,31 +29,13 @@ export const registerUser = async (req, res) => {
         }
         const otp = entity.generateOtp();
         const hashPassword = await entity.encryptPassword(password);
-        let userRole = Role.USER;
-
-        if (role && role !== Role.USER) {
-            userRole = Role.SUPER_ADMIN;
-            const user = new userModel({
-                fullName: fullName,
-                email: email,
-                password: hashPassword,
-                phone: phone,
-                role: userRole,
-                otp: otp,
-            });
-            sendRegistrationEmails(email, fullName, otp);
-            await user.save();
-            return res.status(201).json({
-                message: "user created successfuly",
-            });
-        }
 
         const user = new userModel({
             fullName: fullName,
             email: email,
             password: hashPassword,
             phone: phone,
-            role: userRole,
+            role: role,
             otp: otp,
         });
         sendRegistrationEmails(email, fullName, otp);
@@ -100,119 +82,22 @@ export const loginUser = async (req, res) => {
             });
         }
 
-        const otp = entity.generateOtp();
-        const otpPayload = {
-            otp: otp,
+        const payload = {
+            id: user._id,
+            role: user.role,
         };
-        const _doc = req.user;
-        console.log(otpPayload)
-        await entity.updateUserByEmail(email, otpPayload, userModel);
-        const otpMessage = {
-            recieverEmail: email,
-            subject: "Verify Otp",
-            text: `Hello ${_doc.fullName}. Your OTP is ${otp.otp}. ${messages.OTP}`,
-        };
-        sendEmail(otpMessage);
+        const token = entity.jwtSign(payload);
         return res.status(200).json({
             message: "User login successful",
             payload: {
                 id: user._id,
                 email: user.email,
                 role: user.role,
+                token: token,
             },
         });
     } catch (error) {
         console.error("Login error:", error);
-        return res.status(500).json({
-            message: error.message,
-        });
-    }
-};
-// // Register Admin function
-export const registerAdmin = async (req, res) => {
-    try {
-        const {
-            fullName,
-            email,
-            password,
-            phone,
-            street,
-            city,
-            state,
-            country,
-            postalCode,
-            role,
-        } = req.body;
-        const user = req.user;
-
-        if (user.role !== Role.SUPER_ADMIN) {
-            return res.status(403).json({
-                message: "Only a Super Admin can register a new admin.",
-            });
-        }
-
-        const checkFields = entity.checkMissingFieldsInput(
-            adminRegisterField,
-            req.body
-        );
-        if (!checkFields.result) {
-            return res.status(400).json({
-                message: checkFields.message,
-            });
-        }
-
-        const otp = entity.generateOtp();
-        const hashPassword = await entity.encryptPassword(password);
-
-        const newAdmin = new userModel({
-            fullName: fullName,
-            email: email,
-            password: hashPassword,
-            phone: phone,
-            otp: otp,
-            address: {
-                street: street,
-                city: city,
-                state: state,
-                country: country,
-                postalCode: postalCode,
-            },
-            role: Role.ADMIN,
-        });
-
-        sendRegistrationEmails(email, fullName, otp);
-
-        await newAdmin.save();
-
-        const notifications = [
-            {
-                creatorId: user._id,
-                title: "New Admin Registered",
-                content: `You have successfully registered ${fullName} as an admin.`,
-                sender: user.email,
-                receiver: user.email,
-            },
-            {
-                creatorId: user._id,
-                title: "Welcome to the Admin Team",
-                content: `Hello ${fullName}, you have been registered as an admin.`,
-                sender: user.email,
-                receiver: email,
-            },
-        ];
-
-        await notificationModel.insertMany(notifications);
-
-        await sendNotificationEmails(
-            user.email,
-            user.fullName,
-            email,
-            fullName
-        );
-        return res.status(201).json({
-            message: "Admin created successfully, notifications sent.",
-        });
-    } catch (error) {
         return res.status(500).json({
             message: error.message,
         });
@@ -357,10 +242,10 @@ export const verifyOTP = async (req, res) => {
                         role: _doc.role,
                     };
                     const token = entity.jwtSign(payload);
-                    res.setHeader("Authorization", `Bearer ${token}`);
                     sendEmail(emailMessage);
                     return res.status(200).json({
                         message: "OTP verification successful",
+                        token: token,
                     });
                 });
         }
