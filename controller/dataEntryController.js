@@ -82,9 +82,20 @@ export const getAllDataEntry = async (req, res) => {
 export const getDataEntryById = async (req, res) => {
     try {
         const userId = req.userId;
+        console.log(userId);
         const dataEntry = await dataEntryModel.findById(userId);
         return res.status(200).json(dataEntry);
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
 };
+
+//get all approved data entry
+export const getAllApprovedDataEntry = async (req, res) => {
+    try {
+        const dataEntry = await dataEntryModel.find({ isApproved: "true" });
+        return res.status(200).json(dataEntry);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
