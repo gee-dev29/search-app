@@ -54,7 +54,6 @@ export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Validate input fields
         const checkFields = entity.checkMissingFieldsInput(
             loginField,
             req.body
@@ -66,15 +65,7 @@ export const loginUser = async (req, res) => {
             });
         }
 
-        // Find the user by email
-        const user = await userModel.findOne({ email });
-        if (!user) {
-            return res.status(404).json({
-                message: "User not found",
-            });
-        }
-
-        // Compare the provided password with the stored hashed password
+        const user = req.user;
         const isPasswordValid = await entity.decryptPassword(password, user);
         if (!isPasswordValid) {
             return res.status(401).json({

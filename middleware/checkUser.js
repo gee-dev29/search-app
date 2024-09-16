@@ -1,5 +1,4 @@
 import { userModel } from "../interface/userModel.js";
-import jwt from "jsonwebtoken";
 
 export const checkUser = async (req, res, next) => {
     try {

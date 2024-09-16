@@ -7,11 +7,12 @@ import {
 import { checkUser } from "../middleware/checkUser.js";
 import { jwtVerify } from "../middleware/jwtAuthentification.js";
 import { superAdminRoleCheck } from "../middleware/checkRole.js";
+import { findUserByEmail } from "../middleware/findUserByEmail.js";
 
 const router = express.Router();
 
 router.route("/register").post(jwtVerify, superAdminRoleCheck, registerUser);
-router.route("/login").post(loginUser);
-router.route("/:id/verify-otp").post(checkUser, verifyOTP);
+router.route("/login").post(findUserByEmail, loginUser);
+router.route("/verify-otp").post(findUserByEmail, verifyOTP);
 
 export default router;
