@@ -1,4 +1,4 @@
-const registerField = ["fullName", "phone", "email", "password"];
+const registerField = ["fullName", "phone", "email", "password", "role"];
 const updateField = ["phone", "address", "profilePicture"];
 const adminRegisterField = [
     "fullName",

@@ -36,7 +36,7 @@ dbConnection();
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/data-entry", dataEntryRoute);
-app.listen(process.env.PORT || 8920, () => {
+app.listen(process.env.PORT ||  8080, () => {
     consola.success({
         message: `Server started on port ${process.env.PORT || 8920}`,
         badge: true,

@@ -69,6 +69,12 @@ const dataEntrySchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        status: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending",
+            required: true,
+        },
         isChurchBranchAvailable: {
             type: Boolean,
             enum: ["yes", "no"],
@@ -79,4 +85,4 @@ const dataEntrySchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-export default mongoose.model("dataEntry", dataEntrySchema);
+export const dataEntryModel =  mongoose.model("dataEntry", dataEntrySchema);
