@@ -10,6 +10,6 @@ const router = express.Router();
 
 router.route("/").post(jwtVerify, checkUser, createDataEntry);
 router.route("/:id?").get(jwtVerify, checkUser, getAllDataEntryOrById);
-router.route("/:status").get(jwtVerify, checkUser, getDataByStatus);
+router.route("/status/:status").get(jwtVerify, checkUser, getDataByStatus);
 
 export default router;

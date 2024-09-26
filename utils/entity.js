@@ -72,11 +72,11 @@ const generateOtp = () => {
     const expiresIn = new Date(Date.now() + 10 * 60 * 1000);
     return { otp: value, expiresIn: expiresIn };
 };
-
 const getAllFilteredData = async (model, filter) => {
     const data = await model.find(filter).sort({ createdAt: -1 });
     return data;
 };
+
 
 const checkMissingFieldsInput = (requiredFields, requestBody) => {
     const missingOrEmptyFields = [];

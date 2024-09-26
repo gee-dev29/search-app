@@ -203,10 +203,11 @@ export const updateUser = async (req, res) => {
 // forgot password
 export const forgotPassword = async (req, res) => {
     try {
+        
         const user = req.user;
         const { email } = req.body;
         const token = jwtSign(user._id);
-        const encrypedToken = encryptData(token, process.env.ENCRYPTION_KEY);
+        const encrypedToken = encryptData(token, process.env.encrypedToken);
         const text = resetPasswordTemplate(encrypedToken, user.fullName);
         const emailMessage = {
             recieverEmail: email,

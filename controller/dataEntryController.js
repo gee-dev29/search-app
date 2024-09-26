@@ -85,28 +85,24 @@ export const getAllDataEntryOrById = async (req, res) => {
     try {
         const id = req.params.id;
         if (id) {
-            const results = await getSingleData(dataEntryModel, id);
-
-            const entriesWithUserNames = await Promise.all(
-                results.map(async (entry) => {
-                    const creator = await userModel.findById(entry.creatorId);
-                    const creatorName = creator.fullName;
-
-                    return {
-                        ...entry._doc,
-                        userName: creatorName,
-                    };
-                })
-            );
+            const result = await getSingleData(dataEntryModel, id);
+            if (!result) {
+                return res.status(404).json({ message: "Data entry not found" });
+            }
+            const creator = await userModel.findById(result.creatorId);
+            const creatorName = creator ? creator.fullName : 'Unknown';
             return res.status(200).json({
-                payload: entriesWithUserNames,
+                payload: {
+                    ...result._doc,
+                    userName: creatorName,
+                },
             });
         }
         const dataEntries = await getAllFilteredData(dataEntryModel, {});
         const entriesWithUserNames = await Promise.all(
             dataEntries.map(async (entry) => {
                 const creator = await userModel.findById(entry.creatorId);
-                const creatorName = creator.fullName;
+                const creatorName = creator ? creator.fullName : 'Unknown';
                 return {
                     ...entry._doc,
                     userName: creatorName,
@@ -119,27 +115,33 @@ export const getAllDataEntryOrById = async (req, res) => {
     }
 };
 
+
 export const getDataByStatus = async (req, res) => {
     try {
-        const status = req.params.status;
-        console.log(status);
+        const status = req.params
         if (!status) {
             return res
                 .status(400)
                 .json({ message: "Status parameter is required" });
         }
-        const payload = await getAllFilteredData(dataEntryModel, {
-            status: status,
-        });
-
-        console.log(payload);
-        if (!payload || payload.length === 0) {
+        const dataEntries = await getAllFilteredData(dataEntryModel, status);
+        const entriesWithUserNames = await Promise.all(
+            dataEntries.map(async (entry) => {
+                const creator = await userModel.findById(entry.creatorId);
+                const creatorName = creator ? creator.fullName : 'Unknown';
+                return {
+                    ...entry._doc,
+                    userName: creatorName,
+                };
+            })
+        );
+        if (!dataEntries || dataEntries.length === 0) {
             return res.status(204).json({
-                payload: [],
+                dataEntries: [],
             });
         }
         return res.status(200).json({
-            payload: payload,
+            payload: entriesWithUserNames
         });
     } catch (error) {
         return res.status(500).json({ message: error.message });
