@@ -74,7 +74,7 @@ const generateOtp = () => {
 };
 
 const getAllFilteredData = async (model, filter) => {
-    const data = model.find(filter).sort({ createdAt: -1 });
+    const data = await model.find(filter).sort({ createdAt: -1 });
     return data;
 };
 
@@ -118,7 +118,6 @@ const getSingleData = async (model, id) => {
     }
 };
 
-
 const isValidUUID = (id) => {
     const uuidRegex =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -145,5 +144,5 @@ export {
     generateOtp,
     isValidUUID,
     isValidObjectId,
-    getSingleData
+    getSingleData,
 };

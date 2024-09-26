@@ -1,19 +1,3 @@
-// import {
-//     encryptPassword,
-//     decryptPassword,
-//     jwtSign,
-//     getAllFilteredData,
-//     checkUploadDoc,
-//     updateUserByEmail,
-//     checkMissingFieldsInput,
-//     updateDataById,
-//     deleteDataById,
-//     updateArrayOfData,
-//     encryptData,
-//     decryptData,
-//     generateOtp,
-//     isValidUUID,
-// } from "../utils/entity.js";
 import {
     checkMissingFieldsInput,
     getAllFilteredData,
@@ -23,6 +7,8 @@ import {
 import { dataEntryField } from "../utils/inputField.js";
 import { dataEntryModel } from "../interface/dataEntryModel.js";
 import { userModel } from "../interface/userModel.js";
+
+// add  data enter entry and update data entry
 export const createDataEntry = async (req, res) => {
     try {
         const id = req.body.id;
@@ -32,7 +18,7 @@ export const createDataEntry = async (req, res) => {
                 return res.status(404).json({ message: "id not found" });
             }
             return res
-                .status(204)
+                .status(200)
                 .json({ message: "data entry updated successfully" });
         }
         const userId = req.userId;
@@ -94,15 +80,12 @@ export const createDataEntry = async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 };
-
-// Get all data entry
+// Get all data entry or get single data entry by Id
 export const getAllDataEntryOrById = async (req, res) => {
     try {
         const id = req.params.id;
         if (id) {
-            const results = await getAllFilteredData(dataEntryModel, {
-                creatorId: id,
-            });
+            const results = await getSingleData(dataEntryModel, id);
 
             const entriesWithUserNames = await Promise.all(
                 results.map(async (entry) => {
@@ -119,7 +102,7 @@ export const getAllDataEntryOrById = async (req, res) => {
                 payload: entriesWithUserNames,
             });
         }
-        const dataEntries = await dataEntryModel.find();
+        const dataEntries = await getAllFilteredData(dataEntryModel, {});
         const entriesWithUserNames = await Promise.all(
             dataEntries.map(async (entry) => {
                 const creator = await userModel.findById(entry.creatorId);
@@ -136,19 +119,28 @@ export const getAllDataEntryOrById = async (req, res) => {
     }
 };
 
-export const getAllDataEntryById = async (req, res) => {
+export const getDataByStatus = async (req, res) => {
     try {
-        const { id } = req.params;
-        if (isValidUUID(id)) {
-            const result = await getAllFilteredData(dataEntryModel, {
-                _id: id,
-            });
-            return res.status(200).json({
-                payload: result,
+        const status = req.params.status;
+        console.log(status);
+        if (!status) {
+            return res
+                .status(400)
+                .json({ message: "Status parameter is required" });
+        }
+        const payload = await getAllFilteredData(dataEntryModel, {
+            status: status,
+        });
+
+        console.log(payload);
+        if (!payload || payload.length === 0) {
+            return res.status(204).json({
+                payload: [],
             });
         }
-        const dataEntry = await dataEntryModel.find();
-        return res.status(200).json({ payload: dataEntry });
+        return res.status(200).json({
+            payload: payload,
+        });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
