@@ -2,6 +2,9 @@ import { UserStatus } from "../enums/statusEnum.js";
 import resetPasswordTemplate from "../emailService/template/template.js";
 import { sendEmail } from "../emailService/email.js";
 import { messages } from "../message/messageEnum.js";
+
+import dotenv from "dotenv";
+dotenv.config();
 import {
     adminRegisterField,
     loginField,
@@ -207,7 +210,7 @@ export const forgotPassword = async (req, res) => {
         const user = req.user;
         const { email } = req.body;
         const token = jwtSign(user._id);
-        const encrypedToken = encryptData(token, process.env.encrypedToken);
+        const encrypedToken = encryptData(token, process.env.ENCRYPTION_KEY);
         const text = resetPasswordTemplate(encrypedToken, user.fullName);
         const emailMessage = {
             recieverEmail: email,
