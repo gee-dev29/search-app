@@ -1,22 +1,24 @@
-import dataEntryModel from "../interface/dataEntryModel.js";
-import { userModel } from "../interface/userModel.js";
-import { entity } from "../utils/entity.js";
+import {
+    checkMissingFieldsInput,
+    getAllFilteredData,
+    getSingleData,
+    updateDataById,
+} from "../utils/entity.js";
 import { dataEntryField } from "../utils/inputField.js";
+import { dataEntryModel } from "../interface/dataEntryModel.js";
+import { userModel } from "../interface/userModel.js";
 
+// add  data enter entry and update data entry
 export const createDataEntry = async (req, res) => {
     try {
         const id = req.body.id;
         if (id) {
-            const result = await entity.updateDataById(
-                id,
-                req.body,
-                dataEntryModel
-            );
+            const result = await updateDataById(id, req.body, dataEntryModel);
             if (!result) {
                 return res.status(404).json({ message: "id not found" });
             }
             return res
-                .status(204)
+                .status(200)
                 .json({ message: "data entry updated successfully" });
         }
         const userId = req.userId;
@@ -35,10 +37,7 @@ export const createDataEntry = async (req, res) => {
             postalCode,
         } = req.body;
 
-        const checkFields = entity.checkMissingFieldsInput(
-            dataEntryField,
-            req.body
-        );
+        const checkFields = checkMissingFieldsInput(dataEntryField, req.body);
         if (!checkFields.result) {
             return res.status(400).json({
                 message: checkFields.message,
@@ -81,84 +80,69 @@ export const createDataEntry = async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 };
-
-// edit data entry
-export const editDataEntry = async (req, res) => {
+// Get all data entry or get single data entry by Id
+export const getAllDataEntryOrById = async (req, res) => {
     try {
-        const userId = req.userId;
-        const {
-            nameOfChurch,
-            nameOfGO,
-            denomination,
-            yearOfEstablishment,
-            churchURL,
-            socialMediaPage,
-            continent,
-            country,
-            state,
-            city,
-            street,
-            postalCode,
-        } = req.body;
-        const checkFields = entity.checkMissingFieldsInput(
-            dataEntryField,
-            req.body
+        const id = req.params.id;
+        if (id) {
+            const result = await getSingleData(dataEntryModel, id);
+            if (!result) {
+                return res.status(404).json({ message: "Data entry not found" });
+            }
+            const creator = await userModel.findById(result.creatorId);
+            const creatorName = creator ? creator.fullName : 'Unknown';
+            return res.status(200).json({
+                payload: {
+                    ...result._doc,
+                    userName: creatorName,
+                },
+            });
+        }
+        const dataEntries = await getAllFilteredData(dataEntryModel, {});
+        const entriesWithUserNames = await Promise.all(
+            dataEntries.map(async (entry) => {
+                const creator = await userModel.findById(entry.creatorId);
+                const creatorName = creator ? creator.fullName : 'Unknown';
+                return {
+                    ...entry._doc,
+                    userName: creatorName,
+                };
+            })
         );
-        if (!checkFields.result) {
-            return res.status(400).json({
-                message: checkFields.message,
-            });
-        }
-
-        const dataEntry = await dataEntryModel.findOne({
-            yearOfEstablishment,
-            nameOfGO: nameOfGO.toLowerCase(),
-            churchURL: churchURL.toLowerCase(),
-            nameOfChurch: nameOfChurch.toLowerCase(),
-        });
-        if (!dataEntry) {
-            return res.status(400).json({
-                message: "Data entry not found",
-            });
-        }
-
-        dataEntry.nameOfChurch = nameOfChurch.toLowerCase();
-        dataEntry.nameOfGO = nameOfGO.toLowerCase();
-        dataEntry.denomination = denomination.toLowerCase();
-        dataEntry.yearOfEstablishment = yearOfEstablishment;
-        dataEntry.churchURL = churchURL.toLowerCase();
-        dataEntry.socialMediaPage = socialMediaPage;
-        dataEntry.continent = continent.toLowerCase();
-        dataEntry.churchAddress = {
-            country: country.toLowerCase(),
-            state: state.toLowerCase(),
-            city: city.toLowerCase(),
-            street: street.toLowerCase(),
-            postalCode: postalCode.toLowerCase(),
-        };
-
-        await dataEntry.save();
-        return res.status(200).json({ message: "Data updated successfully" });
+        return res.status(200).json({ payload: entriesWithUserNames });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
 };
-// Get all data entry
-export const getAllDataEntry = async (req, res) => {
+
+
+export const getDataByStatus = async (req, res) => {
     try {
-        const { id, status } = req.params;
-        if (id || status) {
-            const result = await entity.getAllFilteredData(dataEntryModel, {
-                creatorId: id,
-                status: status,
-            });
-            return res.status(200).json({
-                payload: result,
+        const status = req.params
+        if (!status) {
+            return res
+                .status(400)
+                .json({ message: "Status parameter is required" });
+        }
+        const dataEntries = await getAllFilteredData(dataEntryModel, status);
+        const entriesWithUserNames = await Promise.all(
+            dataEntries.map(async (entry) => {
+                const creator = await userModel.findById(entry.creatorId);
+                const creatorName = creator ? creator.fullName : 'Unknown';
+                return {
+                    ...entry._doc,
+                    userName: creatorName,
+                };
+            })
+        );
+        if (!dataEntries || dataEntries.length === 0) {
+            return res.status(204).json({
+                dataEntries: [],
             });
         }
-        const dataEntry = await dataEntryModel.find();
-        console.log(dataEntry);
-        return res.status(200).json({ payload: dataEntry });
+        return res.status(200).json({
+            payload: entriesWithUserNames
+        });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }

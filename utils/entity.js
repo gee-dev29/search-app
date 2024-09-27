@@ -72,11 +72,11 @@ const generateOtp = () => {
     const expiresIn = new Date(Date.now() + 10 * 60 * 1000);
     return { otp: value, expiresIn: expiresIn };
 };
-
 const getAllFilteredData = async (model, filter) => {
-    const data = model.find(filter).sort({ createdAt: -1 });
+    const data = await model.find(filter).sort({ createdAt: -1 });
     return data;
 };
+
 
 const checkMissingFieldsInput = (requiredFields, requestBody) => {
     const missingOrEmptyFields = [];
@@ -109,8 +109,26 @@ const checkMissingFieldsInput = (requiredFields, requestBody) => {
         result: true,
     };
 };
+const getSingleData = async (model, id) => {
+    try {
+        const data = await model.findById(id);
+        return data;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
 
-export const entity = {
+const isValidUUID = (id) => {
+    const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(id);
+};
+
+const isValidObjectId = (id) => {
+    const isValid = mongoose.Types.ObjectId.isValid({ id: id });
+    return isValid;
+};
+export {
     encryptPassword,
     decryptPassword,
     jwtSign,
@@ -124,4 +142,7 @@ export const entity = {
     encryptData,
     decryptData,
     generateOtp,
+    isValidUUID,
+    isValidObjectId,
+    getSingleData,
 };

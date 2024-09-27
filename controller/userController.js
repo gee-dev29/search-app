@@ -2,6 +2,9 @@ import { UserStatus } from "../enums/statusEnum.js";
 import resetPasswordTemplate from "../emailService/template/template.js";
 import { sendEmail } from "../emailService/email.js";
 import { messages } from "../message/messageEnum.js";
+
+import dotenv from "dotenv";
+dotenv.config();
 import {
     adminRegisterField,
     loginField,
@@ -9,26 +12,39 @@ import {
     updateField,
     verifyOTPField,
 } from "../utils/inputField.js";
-import { entity } from "../utils/entity.js";
+import {
+    encryptPassword,
+    decryptPassword,
+    jwtSign,
+    getAllFilteredData,
+    checkUploadDoc,
+    updateUserByEmail,
+    checkMissingFieldsInput,
+    updateDataById,
+    deleteDataById,
+    updateArrayOfData,
+    encryptData,
+    decryptData,
+    generateOtp,
+    isValidUUID,
+    getSingleData,
+} from "../utils/entity.js";
 import { Role } from "../enums/role.js";
 import notificationModel from "../interface/notificationModel.js";
 import { userModel } from "../interface/userModel.js";
+import { isValidObjectId } from "mongoose";
 
 export const registerUser = async (req, res) => {
     try {
         const { fullName, phone, email, password, role } = req.body;
-
-        const checkFields = entity.checkMissingFieldsInput(
-            registerField,
-            req.body
-        );
+        const checkFields = checkMissingFieldsInput(registerField, req.body);
         if (!checkFields.result) {
             return res.status(400).json({
                 message: checkFields.message,
             });
         }
-        const otp = entity.generateOtp();
-        const hashPassword = await entity.encryptPassword(password);
+        const otp = generateOtp();
+        const hashPassword = await encryptPassword(password);
 
         const user = new userModel({
             fullName: fullName,
@@ -38,7 +54,6 @@ export const registerUser = async (req, res) => {
             role: role,
             otp: otp,
         });
-        sendRegistrationEmails(email, fullName, otp);
         await user.save();
         return res.status(201).json({
             message: "user created successfuly",
@@ -49,16 +64,11 @@ export const registerUser = async (req, res) => {
         });
     }
 };
-//login user
 export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Validate input fields
-        const checkFields = entity.checkMissingFieldsInput(
-            loginField,
-            req.body
-        );
+        const checkFields = checkMissingFieldsInput(loginField, req.body);
 
         if (!checkFields.result) {
             return res.status(400).json({
@@ -66,16 +76,8 @@ export const loginUser = async (req, res) => {
             });
         }
 
-        // Find the user by email
-        const user = await userModel.findOne({ email });
-        if (!user) {
-            return res.status(404).json({
-                message: "User not found",
-            });
-        }
-
-        // Compare the provided password with the stored hashed password
-        const isPasswordValid = await entity.decryptPassword(password, user);
+        const user = req.user;
+        const isPasswordValid = await decryptPassword(password, user);
         if (!isPasswordValid) {
             return res.status(401).json({
                 message: "Invalid credentials",
@@ -86,7 +88,7 @@ export const loginUser = async (req, res) => {
             id: user._id,
             role: user.role,
         };
-        const token = entity.jwtSign(payload);
+        const token = jwtSign(payload);
         return res.status(200).json({
             message: "User login successful",
             payload: {
@@ -107,25 +109,43 @@ export const loginUser = async (req, res) => {
 //get user
 export const viewSingleUser = async (req, res) => {
     try {
-        // const user = req.user
-        return res.status(200).json({ payload: req.user });
+        const userId = req.params.id;
+        const data = await getSingleData(userModel, userId);
+        return res.status(200).json({ payload: data });
     } catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: error.message });
     }
 };
-export const viewAllUsers = async (req, res) => {
+
+export const viewUserByRole = async (req, res) => {
     try {
-        const users = await entity.getAllFilteredData(userModel, {});
+        const role = req.role;
+        const users = await getAllFilteredData(userModel, { role: role });
         return res.status(200).json({ payload: users });
     } catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: error.message });
     }
 };
+
+export const viewAllUsers = async (req, res) => {
+    try {
+        const role = req.params.role;
+        if (role) {
+            const users = await getAllFilteredData(userModel, { role: role });
+            return res.status(200).json({ payload: users });
+        }
+        const users = await getAllFilteredData(userModel, {});
+        return res.status(200).json({ payload: users });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
 //delete User
 export const deleteUser = async (req, res) => {
     try {
         const userId = req.userId;
-        await entity.deleteDataById(userId, userModel);
+        await deleteDataById(userId, userModel);
         return res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {}
 };
@@ -138,7 +158,7 @@ export const toggleSuspendUser = async (req, res) => {
             const payload = {
                 status: UserStatus.SUSPENDED,
             };
-            await entity.updateDataById(userId, payload, userModel);
+            await updateDataById(userId, payload, userModel);
             return res.status(200).json({
                 message: "user suspended successfully",
             });
@@ -146,7 +166,7 @@ export const toggleSuspendUser = async (req, res) => {
         const payload = {
             status: UserStatus.ACTIVE,
         };
-        await entity.updateDataById(userId, payload, userModel);
+        await updateDataById(userId, payload, userModel);
         return res.status(200).json({
             message: "user activated successfully",
         });
@@ -162,10 +182,7 @@ export const updateUser = async (req, res) => {
     try {
         const user = req.user;
         const { phone, address, profilePicture } = req.body;
-        const checkFields = entity.checkMissingFieldsInput(
-            updateField,
-            req.body
-        );
+        const checkFields = checkMissingFieldsInput(updateField, req.body);
         if (!checkFields.result) {
             return res.status(400).json({
                 message: checkFields.message,
@@ -176,7 +193,7 @@ export const updateUser = async (req, res) => {
             address: address,
             profilePicture: profilePicture,
         };
-        await entity.updateDataById(user._id, payload, userModel);
+        await updateDataById(user._id, payload, userModel);
         return res.status(200).json({
             message: "user updated successfully",
         });
@@ -189,6 +206,7 @@ export const updateUser = async (req, res) => {
 // forgot password
 export const forgotPassword = async (req, res) => {
     try {
+        
         const user = req.user;
         const { email } = req.body;
         const token = jwtSign(user._id);
@@ -211,10 +229,7 @@ export const forgotPassword = async (req, res) => {
 export const verifyOTP = async (req, res) => {
     try {
         const { otp, email } = req.body;
-        const checkFields = entity.checkMissingFieldsInput(
-            verifyOTPField,
-            req.body
-        );
+        const checkFields = checkMissingFieldsInput(verifyOTPField, req.body);
         if (!checkFields.result) {
             return res.status(400).json({
                 message: checkFields.message,
@@ -229,25 +244,23 @@ export const verifyOTP = async (req, res) => {
             const updateData = {
                 isVerified: true,
             };
-            await entity
-                .updateDataById(_doc._id, updateData, userModel)
-                .then(() => {
-                    const emailMessage = {
-                        recieverEmail: email,
-                        subject: "Account verification successful",
-                        text: `Hello ${_doc.fullName}. ${messages.VERIFIED_OTP}`,
-                    };
-                    const payload = {
-                        id: _doc._id,
-                        role: _doc.role,
-                    };
-                    const token = entity.jwtSign(payload);
-                    sendEmail(emailMessage);
-                    return res.status(200).json({
-                        message: "OTP verification successful",
-                        token: token,
-                    });
+            await updateDataById(_doc._id, updateData, userModel).then(() => {
+                const emailMessage = {
+                    recieverEmail: email,
+                    subject: "Account verification successful",
+                    text: `Hello ${_doc.fullName}. ${messages.VERIFIED_OTP}`,
+                };
+                const payload = {
+                    id: _doc._id,
+                    role: _doc.role,
+                };
+                const token = jwtSign(payload);
+                sendEmail(emailMessage);
+                return res.status(200).json({
+                    message: "OTP verification successful",
+                    token: token,
                 });
+            });
         }
     } catch (error) {
         return res.status(500).json({

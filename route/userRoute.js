@@ -1,26 +1,16 @@
-// import {
-//     deleteUser,
-//     viewAllUsers,
-//     viewSingleUser,
-// } from "../controllers/userController.js";
 import express from "express";
-// import { checkUser } from "../middleware/checkUser.js";
-// import { jwtVerify } from "../middleware/jwtAuthentication.js";
-// import { superAdminRoleCheck } from "../middleware/checkRole.js";
-// import { checkProduct } from "../middleware/checkProduct.js";
+import { checkUser } from "../middleware/checkUser.js";
+import { superAdminRoleCheck } from "../middleware/checkRole.js";
+import { jwtVerify } from "../middleware/jwtAuthentification.js";
+import { deleteUser, viewAllUsers, viewSingleUser } from "../controller/userController.js";
 const router = express.Router();
-// router
-//     .route("/")
-//     .get(jwtVerify, checkUser, viewSingleUser)
-//     .get(jwtVerify, superAdminRoleCheck, viewAllUsers);
+router
+    .route("/:role?")
+    .get(jwtVerify, superAdminRoleCheck, viewAllUsers);
 
-// router
-//     .route("/:id")
-//     .get(jwtVerify, checkUser, viewSingleUser)
-//     .delete(jwtVerify, superAdminRoleCheck, deleteUser);
-    
-// router
-//     .route("/:productId")
-//     .patch(jwtVerify, checkUser, checkProduct, superAdminRoleCheck)
+router
+    .route("/:id")
+    .get(jwtVerify, checkUser, viewSingleUser)
+    .delete(jwtVerify, superAdminRoleCheck, deleteUser);
 
 export default router;
