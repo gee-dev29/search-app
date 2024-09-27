@@ -20,23 +20,6 @@ const userSchema = new mongoose.Schema(
         phone: {
             type: String,
         },
-        address: {
-            street: {
-                type: String,
-            },
-            city: {
-                type: String,
-            },
-            state: {
-                type: String,
-            },
-            country: {
-                type: String,
-            },
-            postalCode: {
-                type: String,
-            }
-        },
         profilePicture: {
             type: String,
         },
@@ -56,8 +39,8 @@ const userSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enums: [, Role.ADMIN, Role.SUPER_ADMIN, Role.USER],
-            default: Role.USER,
+            enums: [, Role.ADMIN, Role.SUPER_ADMIN],
+            default: Role.ADMIN,
         },
         UserStatus: {
             type: String,
