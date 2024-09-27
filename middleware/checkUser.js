@@ -11,6 +11,6 @@ export const checkUser = async (req, res, next) => {
         req.userId = userId
         next();
     } catch (error) {
-        return res.status(401).json({ message: "Token is invalid or expired" });
+        return res.status(401).json({ message: error.message });
     }
 };

@@ -1,19 +1,6 @@
 import { userModel } from "../interface/userModel.js";
 import {
-    encryptPassword,
-    decryptPassword,
-    jwtSign,
-    getAllFilteredData,
-    checkUploadDoc,
-    updateUserByEmail,
     checkMissingFieldsInput,
-    updateDataById,
-    deleteDataById,
-    updateArrayOfData,
-    encryptData,
-    decryptData,
-    generateOtp,
-    isValidUUID,
 } from "../utils/entity.js";
 
 export const findUserByEmail = async (req, res, next) => {

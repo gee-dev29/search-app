@@ -34,7 +34,7 @@ import notificationModel from "../interface/notificationModel.js";
 import { userModel } from "../interface/userModel.js";
 import { isValidObjectId } from "mongoose";
 
-export const registerUser = async (req, res) => {
+export const registerAdmin = async (req, res) => {
     try {
         const { fullName, phone, email, password, role } = req.body;
         const checkFields = checkMissingFieldsInput(registerField, req.body);
@@ -56,7 +56,7 @@ export const registerUser = async (req, res) => {
         });
         await user.save();
         return res.status(201).json({
-            message: "user created successfuly",
+            message: "Admin created successfuly",
         });
     } catch (error) {
         return res.status(500).json({
@@ -90,7 +90,7 @@ export const loginUser = async (req, res) => {
         };
         const token = jwtSign(payload);
         return res.status(200).json({
-            message: "User login successful",
+            message: "Admin login successful",
             payload: {
                 id: user._id,
                 email: user.email,
@@ -99,7 +99,6 @@ export const loginUser = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error("Login error:", error);
         return res.status(500).json({
             message: error.message,
         });
@@ -127,7 +126,8 @@ export const viewUserByRole = async (req, res) => {
     }
 };
 
-export const viewAllUsers = async (req, res) => {
+// view all admin
+export const viewAllAdmin = async (req, res) => {
     try {
         const role = req.params.role;
         if (role) {
@@ -141,8 +141,8 @@ export const viewAllUsers = async (req, res) => {
     }
 };
 
-//delete User
-export const deleteUser = async (req, res) => {
+//delete Admin
+export const deleteUAdmin = async (req, res) => {
     try {
         const userId = req.userId;
         await deleteDataById(userId, userModel);
@@ -177,8 +177,8 @@ export const toggleSuspendUser = async (req, res) => {
     }
 };
 
-//update user
-export const updateUser = async (req, res) => {
+//update Admin
+export const updateAdmin = async (req, res) => {
     try {
         const user = req.user;
         const { phone, address, profilePicture } = req.body;
@@ -195,7 +195,7 @@ export const updateUser = async (req, res) => {
         };
         await updateDataById(user._id, payload, userModel);
         return res.status(200).json({
-            message: "user updated successfully",
+            message: "Admin updated successfully",
         });
     } catch (error) {
         return res.status(500).json({
