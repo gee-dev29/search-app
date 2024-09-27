@@ -23,29 +23,10 @@ const userSchema = new mongoose.Schema(
         profilePicture: {
             type: String,
         },
-        isVerified: {
-            type: Boolean,
-            default: false,
-        },
-        otp: {
-            otp: {
-                type: String,
-                required: true,
-            },
-            expiresIn: {
-                type: Date,
-                required: true,
-            },
-        },
         role: {
             type: String,
             enums: [, Role.ADMIN, Role.SUPER_ADMIN],
             default: Role.ADMIN,
-        },
-        UserStatus: {
-            type: String,
-            enum: [UserStatus.ACTIVE, UserStatus.SUSPENDED, UserStatus.DELETED],
-            default: UserStatus.ACTIVE,
         },
         isSuspended: {
             type: Boolean,

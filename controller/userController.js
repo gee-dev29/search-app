@@ -43,7 +43,6 @@ export const registerAdmin = async (req, res) => {
                 message: checkFields.message,
             });
         }
-        const otp = generateOtp();
         const hashPassword = await encryptPassword(password);
 
         const user = new userModel({
@@ -52,7 +51,6 @@ export const registerAdmin = async (req, res) => {
             password: hashPassword,
             phone: phone,
             role: role,
-            otp: otp,
         });
         await user.save();
         return res.status(201).json({
