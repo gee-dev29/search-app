@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ApprovalStatus } from "../enums/approvalStatus.js";
 
 const dataEntrySchema = new mongoose.Schema(
     {
@@ -65,15 +66,10 @@ const dataEntrySchema = new mongoose.Schema(
                 required: true,
             },
         },
-        isApproved: {
-            type: Boolean,
-            default: false,
-        },
-        status: {
+        approvalStatus: {
             type: String,
-            enum: ["pending", "approved", "rejected"],
-            default: "pending",
-            required: true,
+            enum: [ApprovalStatus.APPROVED, ApprovalStatus.REJECTED, ApprovalStatus.PENDING],
+            default: ApprovalStatus.PENDING,
         },
         isChurchBranchAvailable: {
             type: Boolean,

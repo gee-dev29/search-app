@@ -17,7 +17,9 @@ export const findUserByEmail = async (req, res, next) => {
         if (!user) {
             return res.status(400).json({ message: "user not found" });
         }
-        req.user = user;
+        const { otp, ...others} = user._doc
+        req.user = others;
+        console.log(req.user)
         next();
     } catch (error) {
         return res.status(500).json({ message: error.message });

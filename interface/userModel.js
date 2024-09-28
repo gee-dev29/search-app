@@ -23,6 +23,15 @@ const userSchema = new mongoose.Schema(
         profilePicture: {
             type: String,
         },
+        UserStatus: {
+            type: String,
+            enums: [
+                ,
+                UserStatus.ACTIVE,
+                UserStatus.DELETED,
+            ],
+            default: UserStatus.ACTIVE,
+        },
         role: {
             type: String,
             enums: [, Role.ADMIN, Role.SUPER_ADMIN],

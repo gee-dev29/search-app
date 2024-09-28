@@ -59,14 +59,19 @@ const checkUploadDoc = async (body) => {
 };
 
 const jwtSign = (id) => {
-    const token = jwt.sign(id, process.env.JWT_SECRET, {
-        expiresIn: "30d",
-    });
+    const token = jwt.sign(
+        {
+            userId: id,
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: "2hr",
+        }
+    );
     return token;
 };
 
 // generate Otp
-
 const generateOtp = () => {
     const value = Math.random().toString().substr(2, 4);
     const expiresIn = new Date(Date.now() + 10 * 60 * 1000);
@@ -76,7 +81,6 @@ const getAllFilteredData = async (model, filter) => {
     const data = await model.find(filter).sort({ createdAt: -1 });
     return data;
 };
-
 
 const checkMissingFieldsInput = (requiredFields, requestBody) => {
     const missingOrEmptyFields = [];
@@ -128,6 +132,12 @@ const isValidObjectId = (id) => {
     const isValid = mongoose.Types.ObjectId.isValid({ id: id });
     return isValid;
 };
+
+const getPaginatedData =  async(model, filter, skip, limit ) => {
+    const data = await model.find(filter).limit(limit).skip(skip);
+    totalRecords = data.length;
+    return { data, totalRecords };
+};
 export {
     encryptPassword,
     decryptPassword,
@@ -145,4 +155,5 @@ export {
     isValidUUID,
     isValidObjectId,
     getSingleData,
+    getPaginatedData,
 };

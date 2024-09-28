@@ -1,4 +1,3 @@
-import { UserStatus } from "../enums/statusEnum.js";
 import resetPasswordTemplate from "../emailService/template/template.js";
 import { sendEmail } from "../emailService/email.js";
 import { messages } from "../message/messageEnum.js";
@@ -6,7 +5,6 @@ import { messages } from "../message/messageEnum.js";
 import dotenv from "dotenv";
 dotenv.config();
 import {
-    adminRegisterField,
     loginField,
     registerField,
     updateField,
@@ -17,16 +15,10 @@ import {
     decryptPassword,
     jwtSign,
     getAllFilteredData,
-    checkUploadDoc,
-    updateUserByEmail,
     checkMissingFieldsInput,
     updateDataById,
     deleteDataById,
-    updateArrayOfData,
     encryptData,
-    decryptData,
-    generateOtp,
-    isValidUUID,
     getSingleData,
 } from "../utils/entity.js";
 import { Role } from "../enums/role.js";
@@ -47,7 +39,7 @@ export const registerAdmin = async (req, res) => {
 
         const user = new userModel({
             fullName: fullName,
-            email: email,
+            email: email.toLowerCase(),
             password: hashPassword,
             phone: phone,
             role: role,
@@ -140,7 +132,7 @@ export const viewAllAdmin = async (req, res) => {
 };
 
 //delete Admin
-export const deleteUAdmin = async (req, res) => {
+export const deleteAdmin = async (req, res) => {
     try {
         const userId = req.userId;
         await deleteDataById(userId, userModel);
