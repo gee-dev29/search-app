@@ -7,6 +7,7 @@ import authRoute from "./route/authRoute.js";
 import userRoute from "./route/userRoute.js";
 import dataEntryRoute from "./route/dataEntryRoute.js";
 import dbConnection from "./connection/dbConnection.js";
+import { rateLimitterMiddleware } from "./middleware/rateLimiterCheck.js";
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.use(bodyParser.json({ limit: "50mb" }));
 
 dbConnection();
 
-
+app.use(rateLimitterMiddleware)
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/data-entry", dataEntryRoute);
