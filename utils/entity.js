@@ -138,6 +138,19 @@ const getPaginatedData =  async(model, filter, skip, limit ) => {
     totalRecords = data.length;
     return { data, totalRecords };
 };
+
+
+const createRegexQuery = (field) => {
+    const query = {
+        $text: {
+            $search: field,
+        },
+    };
+
+    return query
+};
+
+
 export {
     encryptPassword,
     decryptPassword,
@@ -156,4 +169,5 @@ export {
     isValidObjectId,
     getSingleData,
     getPaginatedData,
+    createRegexQuery
 };
