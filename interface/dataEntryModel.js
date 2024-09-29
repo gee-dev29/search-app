@@ -23,15 +23,15 @@ const dataEntrySchema = new mongoose.Schema(
             required: true,
             index: true
         },
-        PastorName: {
+        pastorName: {
             type: String,
             required: true,
         },
-        PastorPhoneNo: {
+        pastorPhoneNo: {
             type: String,
             required: true,
         },
-        PastorPosition: {
+        pastorPosition: {
             type: String,
             required: true,
         },
@@ -39,7 +39,7 @@ const dataEntrySchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        branchPupolation: {
+        branchPopulation: {
             type: String,
             required: true,
         },
