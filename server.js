@@ -26,7 +26,7 @@ app.use(bodyParser.json({ limit: "50mb" }));
 
 dbConnection();
 
-app.use(rateLimitterMiddleware)
+// app.use(rateLimitterMiddleware)
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/data-entry", dataEntryRoute);
