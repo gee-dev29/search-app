@@ -7,7 +7,6 @@ import authRoute from "./route/authRoute.js";
 import userRoute from "./route/userRoute.js";
 import dataEntryRoute from "./route/dataEntryRoute.js";
 import dbConnection from "./connection/dbConnection.js";
-// import { swaggerApi } from "./swaggerDoc.js";
 
 const app = express();
 
