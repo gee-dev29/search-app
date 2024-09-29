@@ -135,7 +135,7 @@ const isValidObjectId = (id) => {
 
 const getPaginatedData =  async(model, filter, skip, limit ) => {
     const data = await model.find(filter).limit(limit).skip(skip);
-    totalRecords = data.length;
+    const totalRecords = data.length;
     return { data, totalRecords };
 };
 export {

@@ -148,3 +148,32 @@ export const getDataByStatus = async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 };
+
+// search data
+export const searchData = async (req, res) => {
+    try {
+        let filter;
+        const { nameOfChurch, nameOfGO, nameOfCurrentPastor, skip, limit } =
+            req.query;
+
+        if (nameOfChurch) {
+            filter = { $text: { $search: nameOfChurch } };
+        }
+        if (nameOfGO) {
+            filter = { $text: { $search: nameOfGO } };
+        }
+        if (nameOfCurrentPastor) {
+            filter = { $text: { $search: nameOfCurrentPastor } };
+        }
+
+        const retrivedData = await getPaginatedData(
+            dataEntryModel,
+            filter,
+            skip,
+            limit
+        );
+        return res.status(200).json({ payload: retrivedData });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
