@@ -10,10 +10,6 @@ import dbConnection from "./connection/dbConnection.js";
 
 const app = express();
 
-// const options = {
-//     swaggerOptions
-// }
-
 dotenv.config();
 
 // middleware
@@ -27,10 +23,8 @@ app.use(
 );
 app.use(bodyParser.json({ limit: "50mb" }));
 
-// combineRoute();
 dbConnection();
 
-// swaggerApi(app)
 
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/user", userRoute);
