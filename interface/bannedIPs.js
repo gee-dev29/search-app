@@ -28,4 +28,4 @@ const bannedIpSchema = new mongoose.Schema({
     },
 });
 
-export const BannedIp = mongoose.model("BannedIp", bannedIpSchema);
+export const bannedIpModel = mongoose.model("BannedIp", bannedIpSchema);

@@ -24,6 +24,9 @@ function decryptData(encryptedText, key) {
 const updateDataById = async (id, payload, model) => {
     return await model.findByIdAndUpdate(id, payload, { new: true });
 };
+const updateData = async (ip, payload, model) => {
+    return await model.findOneAndUpdate(ip , payload, { new: true });
+};
 
 const updateArrayOfData = async (id, payload, model) => {
     return await model.updateOne(id, { $push: payload });
@@ -133,7 +136,7 @@ const isValidObjectId = (id) => {
     return isValid;
 };
 
-const getPaginatedData =  async(model, filter, skip, limit ) => {
+const getPaginatedData = async (model, filter, skip, limit) => {
     const data = await model.find(filter).limit(limit).skip(skip);
     const totalRecords = data.length;
     return { data, totalRecords };
@@ -156,4 +159,5 @@ export {
     isValidObjectId,
     getSingleData,
     getPaginatedData,
+    updateData,
 };
