@@ -1,5 +1,5 @@
 import { activityModel } from "../interface/activityModel.js";
-export const logActivity = async (req, title, content) => {
+export const logActivity = async (req, res, title, content) => {
     try {
         const activity = new activityModel({
             creatorId: req.id,
