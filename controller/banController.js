@@ -1,7 +1,7 @@
 import { bannedIpModel } from "../interface/bannedIPModel.js";
 import { getAllFilteredData } from "../utils/entity.js";
 
-const maxOffenses = 3;
+let maxOffenses = 3;
 
 const getNormalizedIp = (req) => {
     const ip = req.ip;
@@ -14,7 +14,7 @@ export const banIPAddress = async (req, res) => {
         const bannedIp = await bannedIpModel.findOne({ ipAddress: ip });
         console.log(bannedIp);
 
-        if (bannedIp) {
+        if (bannedIp && bannedIp.offenseCount >= 3) {
             return res.status(403).json({
                 message: `Your IP ${ip} as been banned due to excessive requests.`,
             });
@@ -24,19 +24,14 @@ export const banIPAddress = async (req, res) => {
             { $inc: { offenseCount: 1 } },
             { new: true, upsert: true, runValidators: true }
         );
-
         if (existingOffense.offenseCount >= maxOffenses) {
-            await bannedIpModel.updateOne(
-                { ipAddress: ip },
-                {
-                    reason: "Exceeded rate limit",
-                    bannedAt: Date.now(),
-                    offenseCount: existingOffense.offenseCount,
-                }
-            );
+            existingOffense.reason = "Exceeded rate limit";
+            existingOffense.bannedAt = Date.now();
+
+            await existingOffense.save();
 
             return res.status(403).json({
-                message: `Your IP ${ip} as been banned due to excessive requests`,
+                message: `Your IP ${ip} has been banned due to excessive requests..............`,
             });
         }
         res.status(429).json({
