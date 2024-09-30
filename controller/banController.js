@@ -30,7 +30,7 @@ export const banIPAddress = async (req, res) => {
             await existingOffense.save();
 
             return res.status(403).json({
-                message: `Your IP ${ip} has been banned due to excessive requests..............`,
+                message: `Your IP ${ip} has been banned due to excessive requests.`,
             });
         }
         res.status(429).json({
