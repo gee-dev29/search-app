@@ -38,7 +38,7 @@ export const banIPAddress = async (req, res) => {
     } catch (error) {
         console.error("Error processing rate limit:", error);
         return res.status(500).json({
-            message: "Internal server error while handling rate limit.",
+            message: error.message,
         });
     }
 };
