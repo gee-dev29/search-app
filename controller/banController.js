@@ -1,5 +1,4 @@
 import { bannedIpModel } from "../interface/bannedIPModel.js";
-import { getAllFilteredData } from "../utils/entity.js";
 
 let maxOffenses = 3;
 
