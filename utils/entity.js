@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import moment from "moment";
+import { model } from "mongoose";
 // this function checks if the user data is correct
 
 // Encrypt function
@@ -116,7 +117,7 @@ const checkMissingFieldsInput = (requiredFields, requestBody) => {
         result: true,
     };
 };
-const getSingleData = async (model, id) => {
+const getSingleDataById = async (model, id) => {
     try {
         const data = await model.findById(id);
         return data;
@@ -125,6 +126,10 @@ const getSingleData = async (model, id) => {
     }
 };
 
+const getSingleData = async (model, filter) => {
+    const data  = await model.findOne(filter);
+    return data;
+}
 const isValidUUID = (id) => {
     const uuidRegex =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -157,7 +162,8 @@ export {
     generateOtp,
     isValidUUID,
     isValidObjectId,
-    getSingleData,
+    getSingleDataById,
     getPaginatedData,
     updateData,
+    getSingleData
 };
