@@ -21,7 +21,7 @@ export const banIPAddress = async (req, res) => {
         }
         const existingOffense = await bannedIpModel.findOneAndUpdate(
             { ipAddress: ip },
-            { $inc: { offenseCount: +1 } },
+            { $inc: { offenseCount: 1 } },
             { new: true, upsert: true, runValidators: true }
         );
 
