@@ -21,10 +21,7 @@ import {
     encryptData,
     getSingleData,
 } from "../utils/entity.js";
-import { Role } from "../enums/role.js";
-import notificationModel from "../interface/notificationModel.js";
 import { userModel } from "../interface/userModel.js";
-import { isValidObjectId } from "mongoose";
 
 export const registerAdmin = async (req, res) => {
     try {
