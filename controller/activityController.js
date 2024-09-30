@@ -1,6 +1,6 @@
 import activityModel from "../interface/activityModel.js";
 
-export const logActivity = async (title, content, sender, receiver) => {
+export const logActivity = async (title, content, sender) => {
     try {
         
         const activity = new activityModel({
