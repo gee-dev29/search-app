@@ -1,12 +1,12 @@
 import { logActivity } from "../controller/activityController.js";
 
-export const activityLogger = (title, content, sender) => {
-    try {
-        return async (next) => {
-            await logActivity(title, content, sender);
+export const activityLogger = (title, content) => {
+    return async (req, res, next) => {
+        try {
+            await logActivity(req, title, content);
             next();
-        };
-    } catch (error) {
-        return next(error);
-    }
+        } catch (error) {
+            next(error);
+        }
+    };
 };
