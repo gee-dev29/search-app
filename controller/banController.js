@@ -9,7 +9,7 @@ export const banIPAddress = async (req, res) => {
         });
         if (bannedIp) {
             return res.status(403).json({
-                message: "Your IP has been banned due to excessive requests.",
+                message: `Your IP ${ip} has been banned due to excessive requests.`,
             });
         }
         const existingOffense = await bannedIpModel.findOneAndUpdate(
@@ -29,7 +29,7 @@ export const banIPAddress = async (req, res) => {
             );
 
             return res.status(403).json({
-                message: "Your IP has been banned due to excessive requests.",
+                message: `Your IP ${ip} has been banned due to excessive requests`,
             });
         }
         res.status(429).json({
