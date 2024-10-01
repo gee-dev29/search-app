@@ -13,10 +13,8 @@ import { ApprovalStatus } from "../enums/approvalStatus.js";
 // add  data enter entry and update data entry
 export const createDataEntry = async (req, res) => {
     try {
-        const id = req.body.id;
-        if (id) {
+        if (req.userId) {
             const result = await updateDataById(id, req.body, dataEntryModel);
-            console.log(result);
 
             await logActivity(id, "Data Entry Update");
             if (!result) {
@@ -42,7 +40,7 @@ export const createDataEntry = async (req, res) => {
             postalCode,
         } = req.body;
 
-        const checkFields = checkMissingFieldsInput(dataEntryField, req.body);
+        const checkFields = checkMissingFieldsInput(dataEntryField, {...req.body, creatorId: res.userId});
         if (!checkFields.result) {
             return res.status(400).json({
                 message: checkFields.message,
@@ -61,23 +59,7 @@ export const createDataEntry = async (req, res) => {
             });
         }
 
-        const newDataEntry = new dataEntryModel({
-            creatorId: userId,
-            nameOfChurch: nameOfChurch.toLowerCase(),
-            nameOfGO: nameOfGO.toLowerCase(),
-            denomination: denomination.toLowerCase(),
-            yearOfEstablishment: yearOfEstablishment,
-            churchURL: churchURL.toLowerCase(),
-            socialMediaPage: socialMediaPage,
-            continent: continent.toLowerCase(),
-            churchAddress: {
-                country: country.toLowerCase(),
-                state: state.toLowerCase(),
-                city: city.toLowerCase(),
-                street: street.toLowerCase(),
-                postalCode: postalCode.toLowerCase(),
-            },
-        });
+        const newDataEntry = new dataEntryModel(req.body);
 
         await newDataEntry.save();
         return res.status(200).json({ message: "Data created successfully" });

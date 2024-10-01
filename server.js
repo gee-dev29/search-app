@@ -31,8 +31,8 @@ dbConnection();
 // app.use(rateLimitterMiddleware)
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/user", userRoute);
-app.use("/api/v1/data-entry", dataEntryRoute);
-app.use("/api/v1/data-entry", searchRoute);
+app.use("/api/v1/data", dataEntryRoute);
+app.use("/api/v1/search", searchRoute);
 app.listen(process.env.PORT || 8080, () => {
     consola.success({
         message: `Server started on port ${process.env.PORT || 8080}`,

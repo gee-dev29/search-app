@@ -9,6 +9,7 @@ export const checkUser = async (req, res, next) => {
         }
         req.user = user;
         req.userId = userId
+        req.role = user.role
         next();
     } catch (error) {
         return res.status(401).json({ message: error.message });
