@@ -7,6 +7,7 @@ import authRoute from "./route/authRoute.js";
 import userRoute from "./route/userRoute.js";
 import dataEntryRoute from "./route/dataEntryRoute.js";
 import searchRoute from "./route/searchRoute.js";
+import countriesRoute from "./route/countryRoute.js";
 import dbConnection from "./connection/dbConnection.js";
 import { rateLimitterMiddleware } from "./middleware/rateLimiterCheck.js";
 
@@ -33,6 +34,8 @@ app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/data", dataEntryRoute);
 app.use("/api/v1/search", searchRoute);
+app.use("/api/v1/countries", countriesRoute);
+
 app.listen(process.env.PORT || 8080, () => {
     consola.success({
         message: `Server started on port ${process.env.PORT || 8080}`,
