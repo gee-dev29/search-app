@@ -1,8 +1,9 @@
 import {
   checkMissingFieldsInput,
   getAllFilteredData,
+  getAllFilteredPopulatedData,
   getPaginatedData,
-  getSingleData,
+  getPaginatedDataWithPopulate,
   updateDataById,
 } from "../utils/entity.js";
 import { dataEntryField } from "../utils/inputField.js";
@@ -28,7 +29,7 @@ export const createDataEntry = async (req, res) => {
     const userId = req.userId;
     const {
       nameOfChurch,
-      nameOfGO,
+      generalOverseer,
       denomination,
       yearOfEstablishment,
       churchURL,
@@ -50,7 +51,7 @@ export const createDataEntry = async (req, res) => {
 
     const dataEntry = await dataEntryModel.findOne({
       //   yearOfEstablishment,
-      nameOfGO: nameOfGO.toLowerCase(),
+      generalOverseer: generalOverseer.toLowerCase(),
       churchURL: churchURL.toLowerCase(),
       nameOfChurch: nameOfChurch.toLowerCase(),
     });
@@ -61,7 +62,7 @@ export const createDataEntry = async (req, res) => {
     }
 
     const newDataEntry = new dataEntryModel({
-        creatorId: userId,
+      creatorId: userId,
       ...req.body,
     });
 
@@ -73,13 +74,13 @@ export const createDataEntry = async (req, res) => {
 };
 
 // approve data entry or decline data entry
-export const approveOrRejectDataEntry = async (req, res) => {
+export const updateApprovalStatus = async (req, res) => {
   try {
     const id = req.params.id;
     const { approvalStatus } = req.body;
 
     if (
-      approvalStatus !== ApprovalStatus.APPROVED &&
+      approvalStatus !== ApprovalStatus.APPROVED ||
       approvalStatus !== ApprovalStatus.REJECTED
     ) {
       return res.status(400).json({ message: "Invalid approval status" });
@@ -97,7 +98,6 @@ export const approveOrRejectDataEntry = async (req, res) => {
 // Get all data entry or get single data entry by Id
 export const getAllUserDataEntry = async (req, res) => {
   try {
-
     const filter = {
       creatorId: req.userId,
     };
@@ -110,18 +110,27 @@ export const getAllUserDataEntry = async (req, res) => {
 
 export const getDataByStatus = async (req, res) => {
   try {
-    const { status, limit, skip } = req.params;
+    const { status, limit, skip } = req.query;
+
     if (!(status || limit || skip)) {
       return res
         .status(400)
         .json({ message: " Query parameters are required" });
     }
-    const filter = { status: status };
-    const dataEntries = await getPaginatedData(
+    const filter = { approvalStatus: status };
+    // const dataEntries = await dataEntryModel
+    //   .find(filter)
+    //   .populate({
+    //     path: "creatorId",
+    //     model: "user",
+    //   })
+    const dataEntries = await getPaginatedDataWithPopulate(
       dataEntryModel,
       filter,
       skip,
-      limit
+      limit,
+      "creatorId",
+      "user"
     );
     return res.status(200).json({ payload: dataEntries });
   } catch (error) {
@@ -129,21 +138,30 @@ export const getDataByStatus = async (req, res) => {
   }
 };
 
+export const getDataEntry = async (req, res) => {
+  const id = req.params.id;
+  const filter = {
+    _id: id,
+  };
+  const data = await getAllFilteredPopulatedData(dataEntryModel, filter, 'creatorId', 'user');
+  return res.status(200).json({ payload: data[0] });
+};
+
 // search data
 export const searchData = async (req, res) => {
   try {
     let filter;
-    const { nameOfChurch, nameOfGO, nameOfCurrentPastor, skip, limit } =
+    const { nameOfChurch, generalOverseer, nameOfBranchPastor, skip, limit } =
       req.query;
 
     if (nameOfChurch) {
       filter = { $text: { $search: nameOfChurch } };
     }
-    if (nameOfGO) {
-      filter = { $text: { $search: nameOfGO } };
+    if (generalOverseer) {
+      filter = { $text: { $search: generalOverseer } };
     }
-    if (nameOfCurrentPastor) {
-      filter = { $text: { $search: nameOfCurrentPastor } };
+    if (nameOfBranchPastor) {
+      filter = { $text: { $search: nameOfBranchPastor } };
     }
 
     const retrivedData = await getPaginatedData(

@@ -13,12 +13,12 @@ const dataEntrySchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    nameOfGO: {
+    generalOverseer: {
       type: String,
       required: true,
       index: true,
     },
-    nameOfCurrentPastor: {
+    nameOfBranchPastor: {
       type: String,
       required: true,
       index: true,
