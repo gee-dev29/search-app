@@ -3,6 +3,7 @@ import { checkUser } from "../middleware/checkUser.js";
 import {
   approveOrRejectDataEntry,
   createDataEntry,
+  getAllUserDataEntry,
   getDataByStatus,
 } from "../controller/dataEntryController.js";
 import { jwtVerify } from "../middleware/jwtAuthentification.js";
@@ -11,12 +12,12 @@ import { activityLogger } from "../middleware/activityLoggerMiddleware.js";
 const router = express.Router();
 
 router.route("/").post(jwtVerify, checkUser, createDataEntry);
-// router.route("/:id?").get(jwtVerify, checkUser, getAllDataEntryOrById);
+router.route("/").get(jwtVerify, checkUser, getAllUserDataEntry);
 router
-  .route("/approvalStatus/:approvalStatus")
-  .get(jwtVerify, superAdminRoleCheck, getDataByStatus);
+  .route("/entry/:approvalStatus")
+  .get(jwtVerify, checkUser, superAdminRoleCheck, getDataByStatus);
 router
   .route("/approvalStatus/:id")
-  .patch(jwtVerify, superAdminRoleCheck, approveOrRejectDataEntry);
+  .patch(jwtVerify, checkUser, superAdminRoleCheck, approveOrRejectDataEntry);
 
 export default router;

@@ -84,10 +84,6 @@ const dataEntrySchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    postalCode: {
-      type: String,
-      required: true,
-    },
     approvalStatus: {
       type: String,
       enum: [
