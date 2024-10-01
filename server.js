@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import authRoute from "./route/authRoute.js";
 import userRoute from "./route/userRoute.js";
 import dataEntryRoute from "./route/dataEntryRoute.js";
+import searchRoute from "./route/searchRoute.js";
 import dbConnection from "./connection/dbConnection.js";
 import { rateLimitterMiddleware } from "./middleware/rateLimiterCheck.js";
 
@@ -31,6 +32,7 @@ dbConnection();
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/data-entry", dataEntryRoute);
+app.use("/api/v1/data-entry", searchRoute);
 app.listen(process.env.PORT || 8080, () => {
     consola.success({
         message: `Server started on port ${process.env.PORT || 8080}`,

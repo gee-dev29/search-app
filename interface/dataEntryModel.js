@@ -11,8 +11,27 @@ const dataEntrySchema = new mongoose.Schema(
         nameOfChurch: {
             type: String,
             required: true,
+            index: true
         },
         nameOfGO: {
+            type: String,
+            required: true,
+            index: true
+        },
+        nameOfCurrentPastor: {
+            type: String,
+            required: true,
+            index: true
+        },
+        pastorName: {
+            type: String,
+            required: true,
+        },
+        pastorPhoneNo: {
+            type: String,
+            required: true,
+        },
+        pastorPosition: {
             type: String,
             required: true,
         },
@@ -20,9 +39,14 @@ const dataEntrySchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        branchPopulation: {
+            type: String,
+            required: true,
+        },
         yearOfEstablishment: {
             type: Number,
             required: true,
+            index: true
         },
         churchURL: {
             type: String,
@@ -68,7 +92,11 @@ const dataEntrySchema = new mongoose.Schema(
         },
         approvalStatus: {
             type: String,
-            enum: [ApprovalStatus.APPROVED, ApprovalStatus.REJECTED, ApprovalStatus.PENDING],
+            enum: [
+                ApprovalStatus.APPROVED,
+                ApprovalStatus.REJECTED,
+                ApprovalStatus.PENDING,
+            ],
             default: ApprovalStatus.PENDING,
         },
         isChurchBranchAvailable: {
@@ -81,4 +109,4 @@ const dataEntrySchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-export const dataEntryModel =  mongoose.model("dataEntry", dataEntrySchema);
+export const dataEntryModel = mongoose.model("dataEntry", dataEntrySchema);
