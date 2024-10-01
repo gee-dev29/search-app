@@ -9,7 +9,7 @@ import { findUserByEmail } from "../middleware/findUserByEmail.js";
 
 const router = express.Router();
 
-router.route("/register").post(jwtVerify, superAdminRoleCheck, registerAdmin);
+router.route("/register").post(  registerAdmin);
 router.route("/login").post(findUserByEmail, loginUser);
 
 export default router;

@@ -12,8 +12,8 @@ export const findUserByEmail = async (req, res, next) => {
                 message: checkFields.message,
             });
         }
-
-        const user = await userModel.findOne({ email: email });
+        const modifiedEmail = email.toLowerCase()
+        const user = await userModel.findOne({ email: modifiedEmail });
         if (!user) {
             return res.status(400).json({ message: "user not found" });
         }
