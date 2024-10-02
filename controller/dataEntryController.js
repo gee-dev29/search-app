@@ -100,10 +100,10 @@ export const getAllUserDataEntry = async (req, res) => {
   try {
     const { status } = req.query;
     let filter;
-    if (status) {
+    if (status && status !== "all") {
       filter = {
         creatorId: req.userId,
-        status: status,
+        approvalStatus: status,
       };
     } else {
       filter = {
@@ -111,7 +111,7 @@ export const getAllUserDataEntry = async (req, res) => {
       };
     }
     const result = await getAllFilteredData(dataEntryModel, filter);
-    return res.status(200).json({ payload: result[0] });
+    return res.status(200).json({ payload: result });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -166,7 +166,25 @@ export const getDataEntry = async (req, res) => {
   return res.status(200).json({ payload: data[0] });
 };
 
-// search data
+export const getMyAnalytics = async (req, res) => {
+  try {
+    const id = req.id;
+
+    const statuses = ['pending', 'approved', 'rejected'];
+    const counts = {};
+
+    for (const status of statuses) {
+      counts[status] = await dataEntryModel.countDocuments({ creatorId: id, approvalStatus: status });
+    }
+
+    const totalEntries = await dataEntryModel.countDocuments({ creatorId: id });
+
+    return res.status(200).json({ payload: { ...counts, totalEntries } });
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 export const searchData = async (req, res) => {
   try {
     let filter;

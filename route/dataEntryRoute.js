@@ -5,6 +5,7 @@ import {
   getAllUserDataEntry,
   getDataByStatus,
   getDataEntry,
+  getMyAnalytics,
   updateApprovalStatus,
 } from "../controller/dataEntryController.js";
 import { jwtVerify } from "../middleware/jwtAuthentification.js";
@@ -21,6 +22,9 @@ router
   .patch(jwtVerify, checkUser, superAdminRoleCheck, updateApprovalStatus);
 router
   .route("/entry/:id")
-  .get(jwtVerify, checkUser, superAdminRoleCheck, getDataEntry);
+  .get(jwtVerify, checkUser, getDataEntry);
 
+router
+.route("/my-analytics")
+.get(jwtVerify, checkUser, getMyAnalytics )
 export default router;
