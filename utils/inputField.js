@@ -12,7 +12,7 @@ const adminRegisterField = [
 ];
 const dataEntryField = [
     "nameOfChurch",
-    "nameOfGO",
+    "generalOverseer",
     "denomination",
     "yearOfEstablishment",
     "churchURL",

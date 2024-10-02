@@ -16,7 +16,7 @@ export const createDataEntry = async (req, res) => {
   try {
     const { _id } = req.body;
     if (_id) {
-      const result = await updateDataById(id, req.body, dataEntryModel);
+      const result = await updateDataById(_id, req.body, dataEntryModel);
 
       // await logActivity(id, "Data Entry Update");
       if (!result) {
@@ -117,7 +117,12 @@ export const getDataByStatus = async (req, res) => {
         .status(400)
         .json({ message: " Query parameters are required" });
     }
-    const filter = { approvalStatus: status };
+    let filter;
+    if (status == "all") {
+      filter = {};
+    } else {
+      filter = { approvalStatus: status };
+    }
     // const dataEntries = await dataEntryModel
     //   .find(filter)
     //   .populate({
@@ -143,7 +148,12 @@ export const getDataEntry = async (req, res) => {
   const filter = {
     _id: id,
   };
-  const data = await getAllFilteredPopulatedData(dataEntryModel, filter, 'creatorId', 'user');
+  const data = await getAllFilteredPopulatedData(
+    dataEntryModel,
+    filter,
+    "creatorId",
+    "user"
+  );
   return res.status(200).json({ payload: data[0] });
 };
 
