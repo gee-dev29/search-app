@@ -170,18 +170,40 @@ export const getMyAnalytics = async (req, res) => {
   try {
     const id = req.id;
 
-    const statuses = ['pending', 'approved', 'rejected'];
+    const statuses = ["pending", "approved", "rejected"];
     const counts = {};
 
     for (const status of statuses) {
-      counts[status] = await dataEntryModel.countDocuments({ creatorId: id, approvalStatus: status });
+      counts[status] = await dataEntryModel.countDocuments({
+        creatorId: id,
+        approvalStatus: status,
+      });
     }
 
     const totalEntries = await dataEntryModel.countDocuments({ creatorId: id });
 
     return res.status(200).json({ payload: { ...counts, totalEntries } });
   } catch (error) {
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const getAllAnalytics = async (req, res) => {
+  try {
+    const statuses = ["pending", "approved", "rejected"];
+    const counts = {};
+
+    for (const status of statuses) {
+      counts[status] = await dataEntryModel.countDocuments({
+        approvalStatus: status,
+      });
+    }
+
+    const totalEntries = await dataEntryModel.countDocuments({ creatorId: id });
+
+    return res.status(200).json({ payload: { ...counts, totalEntries } });
+  } catch (error) {
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 

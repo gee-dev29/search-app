@@ -2,6 +2,7 @@ import express from "express";
 import { checkUser } from "../middleware/checkUser.js";
 import {
   createDataEntry,
+  getAllAnalytics,
   getAllUserDataEntry,
   getDataByStatus,
   getDataEntry,
@@ -27,4 +28,8 @@ router
 router
 .route("/my-analytics")
 .get(jwtVerify, checkUser, getMyAnalytics )
+
+router
+.route("/analytics")
+.get(jwtVerify, checkUser, getAllAnalytics )
 export default router;
