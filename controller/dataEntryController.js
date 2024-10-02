@@ -98,9 +98,18 @@ export const updateApprovalStatus = async (req, res) => {
 // Get all data entry or get single data entry by Id
 export const getAllUserDataEntry = async (req, res) => {
   try {
-    const filter = {
-      creatorId: req.userId,
-    };
+    const { status } = req.query;
+    let filter;
+    if (status) {
+      filter = {
+        creatorId: req.userId,
+        status: status,
+      };
+    } else {
+      filter = {
+        creatorId: req.userId,
+      };
+    }
     const result = await getAllFilteredData(dataEntryModel, filter);
     return res.status(200).json({ payload: result[0] });
   } catch (error) {
