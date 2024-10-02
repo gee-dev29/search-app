@@ -9,7 +9,6 @@ import dataEntryRoute from "./route/dataEntryRoute.js";
 import searchRoute from "./route/searchRoute.js";
 import countriesRoute from "./route/countryRoute.js";
 import dbConnection from "./connection/dbConnection.js";
-import { rateLimitterMiddleware } from "./middleware/rateLimiterCheck.js";
 
 const app = express();
 
