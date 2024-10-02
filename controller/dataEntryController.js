@@ -190,16 +190,16 @@ export const getMyAnalytics = async (req, res) => {
 
 export const getAllAnalytics = async (req, res) => {
   try {
-    const statuses = ["pending", "approved", "rejected"];
     const counts = {};
-
-    for (const status of statuses) {
-      counts[status] = await dataEntryModel.countDocuments({
-        approvalStatus: status,
-      });
-    }
+    const roles = ["admin", "super admin"];
 
     const totalEntries = await dataEntryModel.countDocuments({});
+   
+    for (const role of roles) {
+      counts[role] = await userModel.countDocuments({
+        role: role,
+      });
+    }
 
     return res.status(200).json({ payload: { ...counts, totalEntries } });
   } catch (error) {
