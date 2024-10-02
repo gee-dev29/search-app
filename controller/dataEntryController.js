@@ -199,7 +199,7 @@ export const getAllAnalytics = async (req, res) => {
       });
     }
 
-    const totalEntries = await dataEntryModel.countDocuments({ creatorId: id });
+    const totalEntries = await dataEntryModel.countDocuments({});
 
     return res.status(200).json({ payload: { ...counts, totalEntries } });
   } catch (error) {
