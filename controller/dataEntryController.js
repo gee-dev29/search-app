@@ -16,7 +16,11 @@ export const createDataEntry = async (req, res) => {
   try {
     const { _id } = req.body;
     if (_id) {
-      const result = await updateDataById(_id, req.body, dataEntryModel);
+      const result = await updateDataById(
+        _id,
+        { ...req.body, approvalStatus: ApprovalStatus.PENDING },
+        dataEntryModel
+      );
 
       // await logActivity(id, "Data Entry Update");
       if (!result) {
@@ -79,17 +83,13 @@ export const updateApprovalStatus = async (req, res) => {
     const id = req.params.id;
     const { approvalStatus } = req.body;
 
-    if (
-      approvalStatus !== ApprovalStatus.APPROVED ||
-      approvalStatus !== ApprovalStatus.REJECTED
-    ) {
-      return res.status(400).json({ message: "Invalid approval status" });
-    }
     const payload = {
       approvalStatus: approvalStatus,
     };
     await updateDataById(id, payload, dataEntryModel).then(() => {
-      return res.status(200);
+      return res.status(200).json({
+        message: "success",
+      });
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -132,12 +132,6 @@ export const getDataByStatus = async (req, res) => {
     } else {
       filter = { approvalStatus: status };
     }
-    // const dataEntries = await dataEntryModel
-    //   .find(filter)
-    //   .populate({
-    //     path: "creatorId",
-    //     model: "user",
-    //   })
     const dataEntries = await getPaginatedDataWithPopulate(
       dataEntryModel,
       filter,
@@ -194,7 +188,7 @@ export const getAllAnalytics = async (req, res) => {
     const roles = ["admin", "super admin"];
 
     const totalEntries = await dataEntryModel.countDocuments({});
-   
+
     for (const role of roles) {
       counts[role] = await userModel.countDocuments({
         role: role,
