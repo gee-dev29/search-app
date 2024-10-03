@@ -20,20 +20,16 @@ const dataEntrySchema = new mongoose.Schema(
     },
     nameOfBranchPastor: {
       type: String,
-      required: true,
       index: true,
     },
     pastorName: {
       type: String,
-      required: true,
     },
     pastorPhoneNo: {
       type: String,
-      required: true,
     },
     pastorPosition: {
       type: String,
-      required: true,
     },
     denomination: {
       type: String,
@@ -41,7 +37,6 @@ const dataEntrySchema = new mongoose.Schema(
     },
     branchPopulation: {
       type: String,
-      required: true,
     },
     yearOfEstablishment: {
       type: Number,
@@ -50,7 +45,6 @@ const dataEntrySchema = new mongoose.Schema(
     },
     churchURL: {
       type: String,
-      required: true,
       validate: {
         validator: function (v) {
           // Ensure the URL starts with 'http://', 'https://', or 'www'
@@ -62,7 +56,6 @@ const dataEntrySchema = new mongoose.Schema(
     },
     socialMediaPage: {
       type: Array,
-      required: true,
     },
     continent: {
       type: String,

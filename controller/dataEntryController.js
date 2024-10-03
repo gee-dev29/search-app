@@ -34,16 +34,7 @@ export const createDataEntry = async (req, res) => {
     const {
       nameOfChurch,
       generalOverseer,
-      denomination,
-      yearOfEstablishment,
       churchURL,
-      socialMediaPage,
-      continent,
-      country,
-      state,
-      city,
-      street,
-      postalCode,
     } = req.body;
 
     const checkFields = checkMissingFieldsInput(dataEntryField, req.body);

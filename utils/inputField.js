@@ -15,8 +15,6 @@ const dataEntryField = [
     "generalOverseer",
     "denomination",
     "yearOfEstablishment",
-    "churchURL",
-    "socialMediaPage",
     "continent",
     "country",
     "state",
