@@ -7,7 +7,9 @@ import { checkUser } from "../middleware/checkUser.js";
 
 const router = express.Router();
 
-router.route("/register").post(jwtVerify, checkUser, superAdminRoleCheck, registerAdmin);
+router
+  .route("/register")
+  .post(jwtVerify, checkUser, superAdminRoleCheck, registerAdmin);
 router.route("/login").post(findUserByEmail, loginUser);
 
 export default router;

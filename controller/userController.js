@@ -67,6 +67,7 @@ export const loginUser = async (req, res) => {
 
     const user = req.user;
     const isPasswordValid = await decryptPassword(password, user);
+    
     if (!isPasswordValid) {
       return res.status(401).json({
         message: "Invalid credentials",
