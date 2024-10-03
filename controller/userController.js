@@ -117,14 +117,31 @@ export const updateUserProfile = async (req, res) => {
         password: hashPassword,
       };
       const data = await updateDataById(id, payload, userModel);
-      return res.status(200).json({ message: "password updated successfully", payload: data });
+      const newPayload = {
+        fullName: data?.fullName,
+        email: data?.email,
+        role: data?.role,
+        phone: data?.phone,
+      };
+      return res.status(200).json({
+        message: "password updated successfully",
+        payload: newPayload,
+      });
     }
     const payload = {
       fullName: fullName,
       phone: phone,
     };
     const data = await updateDataById(id, payload, userModel);
-    return res.status(200).json({ message: "profile updated successfully", payload: data });
+    const newPayload = {
+      fullName: data?.fullName,
+      email: data?.email,
+      role: data?.role,
+      phone: data?.phone,
+    };
+    return res
+      .status(200)
+      .json({ message: "profile updated successfully", payload: newPayload });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
