@@ -188,22 +188,23 @@ export const deleteAdmin = async (req, res) => {
 //suspend a user
 export const toggleSuspendUser = async (req, res) => {
   try {
-    const userId = req.userId;
+    const id = req.query;
+    const user = req.user;
     if (user.status == UserStatus.ACTIVE) {
       const payload = {
         status: UserStatus.SUSPENDED,
       };
-      await updateDataById(userId, payload, userModel);
+      await updateDataById(id, payload, userModel);
       return res.status(200).json({
-        message: "user suspended successfully",
+        message: "User suspended successfully",
       });
     }
     const payload = {
       status: UserStatus.ACTIVE,
     };
-    await updateDataById(userId, payload, userModel);
+    await updateDataById(id, payload, userModel);
     return res.status(200).json({
-      message: "user activated successfully",
+      message: "User activated successfully",
     });
   } catch (error) {
     return res.status(500).json({
