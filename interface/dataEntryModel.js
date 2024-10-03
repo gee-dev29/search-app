@@ -22,13 +22,13 @@ const dataEntrySchema = new mongoose.Schema(
       type: String,
       index: true,
     },
-    pastorName: {
+    adminName: {
       type: String,
     },
-    pastorPhoneNo: {
+    adminPhoneNo: {
       type: String,
     },
-    pastorPosition: {
+    adminPosition: {
       type: String,
     },
     denomination: {
