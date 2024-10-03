@@ -51,6 +51,7 @@ export const registerAdmin = async (req, res) => {
     });
   }
 };
+
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -100,6 +101,30 @@ export const viewSingleUser = async (req, res) => {
     const { id } = req.query;
     const data = await getSingleData(userModel, id);
     return res.status(200).json({ payload: data });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+//edit user
+export const updateUserProfile = async (req, res) => {
+  try {
+    const id = req.userId;
+    const { fullName, phone, password } = req.body;
+    if (password) {
+      const hashPassword = await encryptPassword(password);
+      const payload = {
+        password: hashPassword,
+      };
+      const data = await updateDataById(id, payload, userModel);
+      return res.status(200).json({ message: "password updated successfully", payload: data });
+    }
+    const payload = {
+      fullName: fullName,
+      phone: phone,
+    };
+    const data = await updateDataById(id, payload, userModel);
+    return res.status(200).json({ message: "profile updated successfully", payload: data });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -196,6 +221,7 @@ export const updateAdmin = async (req, res) => {
     });
   }
 };
+
 // forgot password
 export const forgotPassword = async (req, res) => {
   try {
@@ -260,6 +286,7 @@ export const verifyOTP = async (req, res) => {
     });
   }
 };
+
 export const sendRegistrationEmails = (email, fullName, otp) => {
   const otpMessage = {
     recieverEmail: email,

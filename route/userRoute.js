@@ -4,6 +4,7 @@ import { superAdminRoleCheck } from "../middleware/checkRole.js";
 import { jwtVerify } from "../middleware/jwtAuthentification.js";
 import {
   deleteAdmin,
+  updateUserProfile,
   viewAllUsers,
   viewSingleUser,
 } from "../controller/userController.js";
@@ -17,4 +18,5 @@ router
   .get(jwtVerify, checkUser, viewSingleUser)
   .delete(jwtVerify, checkUser, superAdminRoleCheck, deleteAdmin);
 
+router.route("/update-profile").put(jwtVerify, checkUser, updateUserProfile);
 export default router;
