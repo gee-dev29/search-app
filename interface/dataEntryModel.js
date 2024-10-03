@@ -45,14 +45,14 @@ const dataEntrySchema = new mongoose.Schema(
     },
     churchURL: {
       type: String,
-      validate: {
-        validator: function (v) {
-          // Ensure the URL starts with 'http://', 'https://', or 'www'
-          return /^(https?:\/\/)?(www\.)?[^\s/$.?#].[^\s]*$/.test(v);
-        },
-        message: (props) =>
-          `${props.value} is not a valid URL! It should start with http://, https://, or www.`,
-      },
+      // validate: {
+      //   validator: function (v) {
+      //     // Ensure the URL starts with 'http://', 'https://', or 'www'
+      //     return /^(https?:\/\/)?(www\.)?[^\s/$.?#].[^\s]*$/.test(v);
+      //   },
+      //   message: (props) =>
+      //     `${props.value} is not a valid URL! It should start with http://, https://, or www.`,
+      // },
     },
     socialMediaPage: {
       type: Array,
