@@ -22,6 +22,7 @@ import {
   getSingleData,
 } from "../utils/entity.js";
 import { userModel } from "../interface/userModel.js";
+import { UserStatus } from "../enums/statusEnum.js";
 
 export const registerAdmin = async (req, res) => {
   try {
@@ -188,11 +189,12 @@ export const deleteAdmin = async (req, res) => {
 //suspend a user
 export const toggleSuspendUser = async (req, res) => {
   try {
-    const id = req.query;
-    const user = req.user;
-    if (user.status == UserStatus.ACTIVE) {
+    const { id } = req.query;
+    const user = await getAllFilteredData(userModel, { _id: id });
+    if (user[0].UserStatus == UserStatus.ACTIVE) {
       const payload = {
-        status: UserStatus.SUSPENDED,
+        UserStatus: UserStatus.SUSPENDED,
+        isSuspended: true,
       };
       await updateDataById(id, payload, userModel);
       return res.status(200).json({
@@ -200,7 +202,8 @@ export const toggleSuspendUser = async (req, res) => {
       });
     }
     const payload = {
-      status: UserStatus.ACTIVE,
+      UserStatus: UserStatus.ACTIVE,
+      isSuspended: false,
     };
     await updateDataById(id, payload, userModel);
     return res.status(200).json({
