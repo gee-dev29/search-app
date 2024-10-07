@@ -2,7 +2,7 @@ import { bannedIpModel } from "../interface/bannedIPModel.js";
 import { getAllFilteredData } from "../utils/entity.js";
 
 // / Middleware to check if the IP is banned
-export const checkIfBanned = async (req, res, next) => {
+export const checkBannedIP = async (req, res, next) => {
     try {
         const ip = getNormalizedIp(req);
         const bannedIp = await getAllFilteredData(bannedIpModel, {
@@ -11,8 +11,7 @@ export const checkIfBanned = async (req, res, next) => {
 
         if (bannedIp) {
             return res.status(403).json({
-                message:
-                    `Your IP ${ip} has been banned from accessing this resource.`,
+                message: `Your IP ${ip} has been banned from accessing this resource.`,
             });
         }
 

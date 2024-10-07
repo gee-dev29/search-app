@@ -27,6 +27,7 @@ export const createDataEntry = async (req, res) => {
                 .json({ message: "data entry updated successfully" });
         }
         const userId = req.userId;
+        console.log(userId);
         const {
             nameOfChurch,
             nameOfGO,
@@ -40,6 +41,11 @@ export const createDataEntry = async (req, res) => {
             city,
             street,
             postalCode,
+            branchPopulation, 
+            nameOfCurrentPastor, 
+            pastorPhoneNo, 
+            pastorPosition, 
+            isChurchBranchAvailable 
         } = req.body;
 
         const checkFields = checkMissingFieldsInput(dataEntryField, req.body);
@@ -77,12 +83,17 @@ export const createDataEntry = async (req, res) => {
                 street: street.toLowerCase(),
                 postalCode: postalCode.toLowerCase(),
             },
+            branchPopulation: branchPopulation, 
+            nameOfCurrentPastor: nameOfCurrentPastor.toLowerCase(), 
+            pastorPhoneNo: pastorPhoneNo, 
+            pastorPosition: pastorPosition.toLowerCase(), 
+            isChurchBranchAvailable: isChurchBranchAvailable,
         });
 
         await newDataEntry.save();
         return res.status(200).json({ message: "Data created successfully" });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message }); 
     }
 };
 
@@ -108,6 +119,7 @@ export const approveOrRejectDataEntry = async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 };
+
 // Get all data entry or get single data entry by Id
 export const getAllDataEntryOrById = async (req, res) => {
     try {
@@ -130,7 +142,7 @@ export const getAllDataEntryOrById = async (req, res) => {
 
 export const getDataByStatus = async (req, res) => {
     try {
-        const { status, limit, skip } = req.params;
+        const { status, limit, skip } = req.query;
         if (!(status || limit || skip)) {
             return res
                 .status(400)
@@ -152,12 +164,12 @@ export const getDataByStatus = async (req, res) => {
 // search data
 export const searchData = async (req, res) => {
     try {
-        let filter;
+        let filter = {};
         const { nameOfChurch, nameOfGO, nameOfCurrentPastor, skip, limit } =
             req.query;
 
         if (nameOfChurch) {
-            filter = { $text: { $search: nameOfChurch } };
+            filter = { $regex: { $search: nameOfChurch } };
         }
         if (nameOfGO) {
             filter = { $text: { $search: nameOfGO } };

@@ -14,10 +14,6 @@ const activitySchema = new mongoose.Schema(
         content: {
             type: String,
             required: true,
-        },
-        sender: {
-            type: String,
-            required: true,
         }
     },
     { timestamps: true }

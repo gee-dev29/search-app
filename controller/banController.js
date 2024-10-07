@@ -10,24 +10,17 @@ const getNormalizedIp = (req) => {
 export const banIPAddress = async (req, res) => {
     try {
         const ip = getNormalizedIp(req);
-        const bannedIp = await bannedIpModel.findOne({ ipAddress: ip });
-        console.log(bannedIp);
-
-        if (bannedIp && bannedIp.offenseCount >= 3) {
-            return res.status(403).json({
-                message: `Your IP ${ip} as been banned due to excessive requests.`,
-            });
-        }
         const existingOffense = await bannedIpModel.findOneAndUpdate(
             { ipAddress: ip },
             { $inc: { offenseCount: 1 } },
             { new: true, upsert: true, runValidators: true }
         );
-        if (existingOffense.offenseCount >= maxOffenses) {
-            existingOffense.reason = "Exceeded rate limit";
+        if (existingOffense.offenseCount === maxOffenses) {
+            existingOffense.reason =
+                "IP Banned after persistent API call at Exceeded rate limit";
             existingOffense.bannedAt = Date.now();
 
-            await existingOffense.save();
+            // await existingOffense.save();
 
             return res.status(403).json({
                 message: `Your IP ${ip} has been banned due to excessive requests.`,

@@ -23,10 +23,6 @@ const dataEntrySchema = new mongoose.Schema(
             required: true,
             index: true
         },
-        pastorName: {
-            type: String,
-            required: true,
-        },
         pastorPhoneNo: {
             type: String,
             required: true,
