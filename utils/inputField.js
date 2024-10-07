@@ -12,19 +12,14 @@ const adminRegisterField = [
 ];
 const dataEntryField = [
     "nameOfChurch",
-    "nameOfGO",
+    "generalOverseer",
     "denomination",
     "yearOfEstablishment",
-    "churchURL",
-    "socialMediaPage",
     "continent",
     "country",
     "state",
     "city",
     "street",
-    "postalCode",
-    "postalCode",
-    
 ];
 const loginField = ["email", "password"];
 const verifyOTPField = ["otp", "email"];

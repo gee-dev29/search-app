@@ -1,3 +1,4 @@
+import { UserStatus } from "../enums/statusEnum.js";
 import { userModel } from "../interface/userModel.js";
 import {
     checkMissingFieldsInput,
@@ -12,14 +13,16 @@ export const findUserByEmail = async (req, res, next) => {
                 message: checkFields.message,
             });
         }
-
-        const user = await userModel.findOne({ email: email });
+        const modifiedEmail = email.toLowerCase()
+        const user = await userModel.findOne({ email: modifiedEmail });
         if (!user) {
             return res.status(400).json({ message: "user not found" });
         }
+        if(user.UserStatus == UserStatus.SUSPENDED){
+            return res.status(401).json({ message: "Your account has been suspended. contact admin" });
+        }
         const { otp, ...others} = user._doc
         req.user = others;
-        console.log(req.user)
         next();
     } catch (error) {
         return res.status(500).json({ message: error.message });
