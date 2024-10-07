@@ -100,7 +100,6 @@ const getAllFilteredPopulatedData = async (
       path: path,
       model: selectedModel,
     })
-    .sort({ createdAt: -1 });
   return data;
 };
 

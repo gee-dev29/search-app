@@ -64,14 +64,20 @@ const dataEntrySchema = new mongoose.Schema(
     country: {
       type: String,
       required: true,
+      index: true,
+
     },
     state: {
       type: String,
       required: true,
+      index: true,
+
     },
     city: {
       type: String,
       required: true,
+      index: true,
+
     },
     street: {
       type: String,

@@ -31,11 +31,7 @@ export const createDataEntry = async (req, res) => {
         .json({ message: "data entry updated successfully" });
     }
     const userId = req.userId;
-    const {
-      nameOfChurch,
-      generalOverseer,
-      churchURL,
-    } = req.body;
+    const { nameOfChurch, generalOverseer, churchURL } = req.body;
 
     const checkFields = checkMissingFieldsInput(dataEntryField, req.body);
     if (!checkFields.result) {
@@ -148,6 +144,7 @@ export const getDataEntry = async (req, res) => {
     "creatorId",
     "user"
   );
+
   return res.status(200).json({ payload: data[0] });
 };
 
@@ -195,18 +192,37 @@ export const getAllAnalytics = async (req, res) => {
 export const searchData = async (req, res) => {
   try {
     let filter;
-    const { nameOfChurch, generalOverseer, nameOfBranchPastor, skip, limit } =
-      req.query;
+    const {
+      nameOfChurch,
+      generalOverseer,
+      country,
+      state,
+      city,
+      nameOfBranchPastor,
+      skip,
+      limit,
+    } = req.query;
 
-    if (nameOfChurch) {
-      filter = { $text: { $search: nameOfChurch } };
+    if (
+      nameOfChurch 
+    ) {
+      filter = {
+        $text: { $search: nameOfChurch },
+        approvalStatus: ApprovalStatus.APPROVED,
+      };
     }
-    if (generalOverseer) {
-      filter = { $text: { $search: generalOverseer } };
-    }
-    if (nameOfBranchPastor) {
-      filter = { $text: { $search: nameOfBranchPastor } };
-    }
+    // if (generalOverseer) {
+    //   filter = {
+    //     $text: { $search: generalOverseer },
+    //     approvalStatus: ApprovalStatus.APPROVED,
+    //   };
+    // }
+    // if (nameOfBranchPastor) {
+    //   filter = {
+    //     $text: { $search: nameOfBranchPastor },
+    //     approvalStatus: ApprovalStatus.APPROVED,
+    //   };
+    // }
 
     const retrivedData = await getPaginatedData(
       dataEntryModel,
