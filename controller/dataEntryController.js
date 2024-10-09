@@ -194,45 +194,62 @@ export const getAllAnalytics = async (req, res) => {
 
 export const searchData = async (req, res) => {
     try {
-        let filter;
         const {
-            nameOfChurch,
-            generalOverseer,
             country,
             state,
             city,
+            nameOfChurch,
+            yearOfEstablishment,
+            generalOverseer,
             nameOfBranchPastor,
-            skip,
-            limit,
+            skip = 0,
+            limit = 10,
+            sortField = "nameOfChurch",
+            sortOrder = "asc",
         } = req.query;
 
-        if (nameOfChurch) {
-            filter = {
-                $text: { $search: nameOfChurch },
-                approvalStatus: ApprovalStatus.APPROVED,
-            };
-        }
-        // if (generalOverseer) {
-        //   filter = {
-        //     $text: { $search: generalOverseer },
-        //     approvalStatus: ApprovalStatus.APPROVED,
-        //   };
-        // }
-        // if (nameOfBranchPastor) {
-        //   filter = {
-        //     $text: { $search: nameOfBranchPastor },
-        //     approvalStatus: ApprovalStatus.APPROVED,
-        //   };
-        // }
+        // Initialize the filter with default approval status
+        let filter = { approvalStatus: ApprovalStatus.APPROVED };
 
-        const retrivedData = await getPaginatedData(
+        // Dynamically build filter for individual fields
+        const searchFields = {
+            nameOfChurch,
+            generalOverseer,
+            nameOfBranchPastor,
+            yearOfEstablishment,
+            country,
+            state,
+            city,
+        };
+
+        // Add case-insensitive regex search for specified fields
+        Object.entries(searchFields).forEach(([key, value]) => {
+            if (value && value.trim()) {
+                if (key == "yearOfEstablishment") {
+                    filter[key] = Number(value);
+                } else {
+                    filter[key] = { $regex: value, $options: "i" }; // Case-insensitive search with trimmed value
+                }
+            }
+        });
+
+        // // Sorting: ensure valid sort field and order
+        // const sortOptions = {
+        //     [sortField]: sortOrder === "asc" ? 1 : -1,
+        // };
+
+        // Fetch data with filtering, pagination, and sorting
+        const retrievedData = await getPaginatedData(
             dataEntryModel,
             filter,
             skip,
             limit
         );
-        return res.status(200).json({ payload: retrivedData });
+        return res.status(200).json({ payload: retrievedData });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({
+            message: "An error occurred while processing the search request.",
+            error: error.message,
+        });
     }
 };
