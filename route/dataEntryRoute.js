@@ -3,6 +3,7 @@ import { checkUser } from "../middleware/checkUser.js";
 import {
     createDataEntry,
     getAllAnalytics,
+    getAllChurches,
     getAllUserDataEntry,
     getDataByStatus,
     getDataEntry,
@@ -24,6 +25,7 @@ router
 router.route("/entry/:id").get(jwtVerify, checkUser, getDataEntry);
 
 router.route("/my-analytics").get(jwtVerify, checkUser, getMyAnalytics);
+router.route("/churches").get(jwtVerify, checkUser, getAllChurches);
 
 router.route("/analytics").get(jwtVerify, checkUser, getAllAnalytics);
 export default router;
