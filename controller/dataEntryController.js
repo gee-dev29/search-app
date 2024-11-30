@@ -15,7 +15,7 @@ import { branchesModel } from "../interface/churchBranchesModel.js";
 // add  data enter entry and update data entry
 export const createDataEntry = async (req, res) => {
   try {
-    const { _id, branches, ...others } = req.body;
+    const { _id, branchIds, ...others } = req.body;
     if (_id) {
       const result = await updateDataById(
         _id,
@@ -31,6 +31,7 @@ export const createDataEntry = async (req, res) => {
         .status(200)
         .json({ message: "data entry updated successfully" });
     }
+
     const userId = req.userId;
     const { nameOfChurch, generalOverseer, churchURL } = req.body;
 
@@ -52,15 +53,20 @@ export const createDataEntry = async (req, res) => {
       });
     }
 
+    // Create a new branch document
     const branchData = new branchesModel({
-        ...branches
-    })
-
-    const newDataEntry = new dataEntryModel({
       creatorId: userId,
-      branchesId: branchData._id,
-      ...req.body,
+      ...req.body.branch, // assuming branch data is part of req.body
     });
+      // Save the branch
+      await branchData.save();
+
+
+      const newDataEntry = new dataEntryModel({
+        creatorId: userId,
+        branchIds: [branchData._id],
+        ...req.body,
+      });
 
     await newDataEntry.save();
     return res.status(200).json({ message: "Data created successfully" });
@@ -244,11 +250,13 @@ export const searchData = async (req, res) => {
     // };
 
     // Fetch data with filtering, pagination, and sorting
-    const retrievedData = await getPaginatedData(
+    const retrievedData = await getPaginatedDataWithPopulate(
       dataEntryModel,
       filter,
       skip,
-      limit
+      limit,
+      "branchIds", // Populate the branch data
+      "branches"
     );
     return res.status(200).json({ payload: retrievedData });
   } catch (error) {

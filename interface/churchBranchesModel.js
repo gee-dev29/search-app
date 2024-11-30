@@ -7,6 +7,11 @@ const branchesSchema = new mongoose.Schema(
       ref: "user",
       required: true,
     },
+    chruch: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "churches",
+      required: true,
+    },
     nameOfBranchPastor: {
       type: String,
       index: true,
@@ -56,11 +61,11 @@ const branchesSchema = new mongoose.Schema(
 );
 
 branchesSchema.index({
-    nameOfBranchPastor: "text",
-    country: "text",
-    continent: "text",
-    state: "text",
-    city: "text",
-  });
-  
-  export const branchesModel = mongoose.model("branches", branchesSchema);
+  nameOfBranchPastor: "text",
+  country: "text",
+  continent: "text",
+  state: "text",
+  city: "text",
+});
+
+export const branchesModel = mongoose.model("branches", branchesSchema);

@@ -45,11 +45,13 @@ const dataEntrySchema = new mongoose.Schema(
     churchURL: {
       type: String,
     },
-    branchesId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "branches",
-      required: true
-    }
+    branchIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "branches",
+        required: true,
+      },
+    ],
   },
   { timestamps: true }
 );
@@ -58,4 +60,4 @@ dataEntrySchema.index({
   generalOverseer: "text",
 });
 
-export const dataEntryModel = mongoose.model("dataEntry", dataEntrySchema);
+export const dataEntryModel = mongoose.model("churches", dataEntrySchema);
