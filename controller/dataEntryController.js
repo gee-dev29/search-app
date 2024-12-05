@@ -11,11 +11,12 @@ import { dataEntryModel } from "../interface/dataEntryModel.js";
 import { userModel } from "../interface/userModel.js";
 import { ApprovalStatus } from "../enums/approvalStatus.js";
 import { branchesModel } from "../interface/churchBranchesModel.js";
+import { approvalModel } from "../interface/approvalModel.js";
 
 // add  data enter entry and update data entry
 export const createDataEntry = async (req, res) => {
   try {
-    const { _id, branchIds, ...others } = req.body;
+    const { _id, branchId, ...others } = req.body;
     if (_id) {
       const result = await updateDataById(
         _id,
@@ -30,6 +31,13 @@ export const createDataEntry = async (req, res) => {
       return res
         .status(200)
         .json({ message: "data entry updated successfully" });
+    }
+
+    if (branchId) {
+      let payload = {
+        ...req.body.branches,
+      };
+      await updateDataById(branchId, payload, branchesModel);
     }
 
     const userId = req.userId;
@@ -56,19 +64,27 @@ export const createDataEntry = async (req, res) => {
     // Create a new branch document
     const branchData = new branchesModel({
       creatorId: userId,
-      ...req.body.branch, // assuming branch data is part of req.body
+      ...req.body.branches, // assuming branch data is part of req.body
     });
-      // Save the branch
-      await branchData.save();
+    // Save the branch
+    await branchData.save();
 
+    const newDataEntry = new dataEntryModel({
+      creatorId: userId,
+      branchIds: [branchData._id],
+      ...req.body,
+    });
+    
 
-      const newDataEntry = new dataEntryModel({
-        creatorId: userId,
-        branchIds: [branchData._id],
-        ...req.body,
-      });
+   const result =  await newDataEntry.save();
 
-    await newDataEntry.save();
+    const approvalData = new approvalModel({
+      creatorId: userId,
+      churchId: result._id,
+      branchId: branchData._id,
+    });
+    await approvalData.save();
+
     return res.status(200).json({ message: "Data created successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ApprovalStatus } from "../enums/approvalStatus.js";
 
 const branchesSchema = new mongoose.Schema(
   {
@@ -7,10 +8,9 @@ const branchesSchema = new mongoose.Schema(
       ref: "user",
       required: true,
     },
-    chruch: {
+    chruchId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "churches",
-      required: true,
     },
     nameOfBranchPastor: {
       type: String,
@@ -55,6 +55,15 @@ const branchesSchema = new mongoose.Schema(
     },
     coordinates: {
       type: Array,
+    },
+    approvalStatus: {
+      type: String,
+      enum: [
+        ApprovalStatus.APPROVED,
+        ApprovalStatus.REJECTED,
+        ApprovalStatus.PENDING,
+      ],
+      default: ApprovalStatus.PENDING,
     },
   },
   { timestamps: true }

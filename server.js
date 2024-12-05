@@ -8,6 +8,7 @@ import userRoute from "./route/userRoute.js";
 import dataEntryRoute from "./route/dataEntryRoute.js";
 import searchRoute from "./route/searchRoute.js";
 import countriesRoute from "./route/countryRoute.js";
+import approvalRoute from "./route/approvalRoute.js";
 import dbConnection from "./connection/dbConnection.js";
 
 const app = express();
@@ -32,6 +33,7 @@ dbConnection();
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/data", dataEntryRoute);
+app.use("/api/v1/approval", approvalRoute);
 app.use("/api/v1/search", searchRoute);
 app.use("/api/v1/countries", countriesRoute);
 
