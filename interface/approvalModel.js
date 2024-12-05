@@ -8,6 +8,10 @@ const approvalSchema = new mongoose.Schema(
       ref: "user",
       required: true,
     },
+    type: {
+      type: String,
+      enum: ['church', 'branch']
+    },
     churchId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "churches",

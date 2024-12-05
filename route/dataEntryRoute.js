@@ -1,7 +1,7 @@
 import express from "express";
 import { checkUser } from "../middleware/checkUser.js";
 import {
-  createDataEntry,
+  createChurchEntry,
   getAllAnalytics,
   getAllChurches,
   getAllUserDataEntry,
@@ -14,7 +14,8 @@ import { jwtVerify } from "../middleware/jwtAuthentification.js";
 import { superAdminRoleCheck } from "../middleware/checkRole.js";
 const router = express.Router();
 
-router.route("/").post(jwtVerify, checkUser, createDataEntry);
+router.route("/church").post(jwtVerify, checkUser, createChurchEntry);
+router.route("/branch").post(jwtVerify, checkUser, createChurchEntry);
 router.route("/").get(jwtVerify, checkUser, getAllUserDataEntry);
 router
   .route("/entry")

@@ -8,7 +8,7 @@ const branchesSchema = new mongoose.Schema(
       ref: "user",
       required: true,
     },
-    chruchId: {
+    churchId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "churches",
     },

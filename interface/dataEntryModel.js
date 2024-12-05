@@ -45,13 +45,6 @@ const dataEntrySchema = new mongoose.Schema(
     churchURL: {
       type: String,
     },
-    branchIds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "branches",
-        required: true,
-      },
-    ],
   },
   { timestamps: true }
 );

@@ -14,41 +14,19 @@ import { branchesModel } from "../interface/churchBranchesModel.js";
 import { approvalModel } from "../interface/approvalModel.js";
 
 // add  data enter entry and update data entry
-export const createDataEntry = async (req, res) => {
+export const createChurchEntry = async (req, res) => {
   try {
-    const { _id, branchId, ...others } = req.body;
-    if (_id) {
-      const churchData = await dataEntryModel.findById(_id);
-      if (!branchId && churchData) {
-        const branchData = new branchesModel({
-          creatorId: userId,
-          ...req.body.branches,
-        });
-        // Save the branch
-        const branchResult = await branchData.save();
-
-        const approvalData = new approvalModel({
-          creatorId: userId,
-          churchId: _id,
-          branchId: branchResult._id,
-        });
-        await approvalData.save();
-        const branchPayload = {
-          branchIds: [...churchData.branchIds, branchResult._id],
-        };
-        await updateDataById(_id, branchPayload, dataEntryModel);
-        return res.status(200).json({ message: "Branch created successfully" });
-      }
-    }
-
-    if (branchId) {
-      let payload = {
-        ...req.body.branches,
-      };
-      await updateDataById(branchId, payload, branchesModel);
-    }
-
+    const { _id, ...others } = req.body;
     const userId = req.userId;
+
+    if (_id) {
+        const churchPayload = {
+         ...others,
+        };
+        await updateDataById(_id, churchPayload, dataEntryModel);
+        return res.status(200).json({ message: "Church updated successfully" });
+    }
+
     const { nameOfChurch, generalOverseer, churchURL } = req.body;
 
     const checkFields = checkMissingFieldsInput(dataEntryField, req.body);
@@ -69,17 +47,8 @@ export const createDataEntry = async (req, res) => {
       });
     }
 
-    // Create a new branch document
-    const branchData = new branchesModel({
-      creatorId: userId,
-      ...req.body.branches,
-    });
-    // Save the branch
-    await branchData.save();
-
     const newDataEntry = new dataEntryModel({
       creatorId: userId,
-      branchIds: [branchData._id],
       ...req.body,
     });
 
@@ -88,9 +57,46 @@ export const createDataEntry = async (req, res) => {
     const approvalData = new approvalModel({
       creatorId: userId,
       churchId: result._id,
-      branchId: branchData._id,
+      type: 'church',
     });
     await approvalData.save();
+
+    return res.status(200).json({ message: "Data created successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const createBranchEntry = async (req, res) => {
+  try {
+    const { _id, churchId, ...others } = req.body;
+    const userId = req.userId;
+
+    if (!_id) {
+      const branchData = new branchesModel({
+        creatorId: userId,
+        churchId: churchId,
+        ...req.body.branches,
+      });
+      // Save the branch
+      const branchResult = await branchData.save();
+
+      const approvalData = new approvalModel({
+        creatorId: userId,
+        churchId: _id,
+        branchId: branchResult._id,
+        type: 'branch'
+      });
+      await approvalData.save();
+
+      return res.status(200).json({ message: "Branch created successfully" });
+    }
+
+    const branchPayload = {
+      churchId: churchId,
+      ...others
+    };
+    await updateDataById(_id, branchPayload, branchesModel);
 
     return res.status(200).json({ message: "Data created successfully" });
   } catch (error) {
