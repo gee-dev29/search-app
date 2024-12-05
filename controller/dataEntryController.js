@@ -30,6 +30,7 @@ export const createChurchEntry = async (req, res) => {
     const { nameOfChurch, generalOverseer, churchURL } = req.body;
 
     const checkFields = checkMissingFieldsInput(dataEntryField, req.body);
+    
     if (!checkFields.result) {
       return res.status(400).json({
         message: checkFields.message,
@@ -41,6 +42,7 @@ export const createChurchEntry = async (req, res) => {
       churchURL: churchURL.toLowerCase(),
       nameOfChurch: nameOfChurch.toLowerCase(),
     });
+
     if (dataEntry) {
       return res.status(400).json({
         message: "Data entry already exists",
