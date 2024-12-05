@@ -9,7 +9,7 @@ import {
   getDataByStatus,
   getDataEntry,
   getMyAnalytics,
-  updateApprovalStatus,
+
 } from "../controller/dataEntryController.js";
 import { jwtVerify } from "../middleware/jwtAuthentification.js";
 import { superAdminRoleCheck } from "../middleware/checkRole.js";
@@ -21,9 +21,7 @@ router.route("/").get(jwtVerify, checkUser, getAllUserDataEntry);
 router
   .route("/entry")
   .get(jwtVerify, checkUser, superAdminRoleCheck, getDataByStatus);
-router
-  .route("/approvalStatus/:id")
-  .patch(jwtVerify, checkUser, superAdminRoleCheck, updateApprovalStatus);
+
 router.route("/entry/:id").get(jwtVerify, checkUser, getDataEntry);
 
 router.route("/my-analytics").get(jwtVerify, checkUser, getMyAnalytics);

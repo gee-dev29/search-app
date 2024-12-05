@@ -28,9 +28,8 @@ export const createChurchEntry = async (req, res) => {
     }
 
     const { nameOfChurch, generalOverseer, churchURL } = req.body;
-
     const checkFields = checkMissingFieldsInput(dataEntryField, req.body);
-    
+
     if (!checkFields.result) {
       return res.status(400).json({
         message: checkFields.message,
@@ -61,6 +60,7 @@ export const createChurchEntry = async (req, res) => {
       churchId: result._id,
       type: 'church',
     });
+
     await approvalData.save();
 
     return res.status(200).json({ message: "Data created successfully" });
@@ -85,7 +85,7 @@ export const createBranchEntry = async (req, res) => {
 
       const approvalData = new approvalModel({
         creatorId: userId,
-        churchId: _id,
+        churchId: churchId,
         branchId: branchResult._id,
         type: 'branch'
       });
@@ -106,24 +106,6 @@ export const createBranchEntry = async (req, res) => {
   }
 };
 
-// approve data entry or decline data entry
-export const updateApprovalStatus = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const { approvalStatus } = req.body;
-
-    const payload = {
-      approvalStatus: approvalStatus,
-    };
-    await updateDataById(id, payload, dataEntryModel).then(() => {
-      return res.status(200).json({
-        message: "success",
-      });
-    });
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-};
 
 // Get all data entry or get single data entry by Id
 export const getAllUserDataEntry = async (req, res) => {
