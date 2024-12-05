@@ -18,19 +18,27 @@ export const createDataEntry = async (req, res) => {
   try {
     const { _id, branchId, ...others } = req.body;
     if (_id) {
-      const result = await updateDataById(
-        _id,
-        { ...others, approvalStatus: ApprovalStatus.PENDING },
-        dataEntryModel
-      );
+      const churchData = await dataEntryModel.findById(_id);
+      if (!branchId && churchData) {
+        const branchData = new branchesModel({
+          creatorId: userId,
+          ...req.body.branches,
+        });
+        // Save the branch
+        const branchResult = await branchData.save();
 
-      // await logActivity(id, "Data Entry Update");
-      if (!result) {
-        return res.status(404).json({ message: "id not found" });
+        const approvalData = new approvalModel({
+          creatorId: userId,
+          churchId: _id,
+          branchId: branchResult._id,
+        });
+        await approvalData.save();
+        const branchPayload = {
+          branchIds: [...churchData.branchIds, branchResult._id],
+        };
+        await updateDataById(_id, branchPayload, dataEntryModel);
+        return res.status(200).json({ message: "Branch created successfully" });
       }
-      return res
-        .status(200)
-        .json({ message: "data entry updated successfully" });
     }
 
     if (branchId) {
@@ -64,7 +72,7 @@ export const createDataEntry = async (req, res) => {
     // Create a new branch document
     const branchData = new branchesModel({
       creatorId: userId,
-      ...req.body.branches, // assuming branch data is part of req.body
+      ...req.body.branches,
     });
     // Save the branch
     await branchData.save();
@@ -74,9 +82,8 @@ export const createDataEntry = async (req, res) => {
       branchIds: [branchData._id],
       ...req.body,
     });
-    
 
-   const result =  await newDataEntry.save();
+    const result = await newDataEntry.save();
 
     const approvalData = new approvalModel({
       creatorId: userId,
