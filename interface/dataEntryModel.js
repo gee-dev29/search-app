@@ -104,4 +104,4 @@ dataEntrySchema.index({
     nameOfBranchPastor: "text",
 });
 
-export const dataEntryModel = mongoose.model("dataEntry", dataEntrySchema);
+export const dataEntryModel =  mongoose.model("dataEntry", dataEntrySchema);
