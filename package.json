@@ -10,14 +10,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gee-dev29/search-app.git"
+    "url": "git+https://github.com/donemmx/ekoh-backend.git"
   },
-  "author": "Godwin Madue",
+  "author": "Emmanuel Idusuyi",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/gee-dev29/search-app/issues"
-  },
-  "homepage": "https://github.com/gee-dev29/search-app#readme",
   "dependencies": {
     "axios": "^1.6.8",
     "bcrypt": "^5.1.1",
