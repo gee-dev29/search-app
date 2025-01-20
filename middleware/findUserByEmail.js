@@ -1,19 +1,7 @@
+import { UserStatus } from "../enums/statusEnum.js";
 import { userModel } from "../interface/userModel.js";
 import {
-    encryptPassword,
-    decryptPassword,
-    jwtSign,
-    getAllFilteredData,
-    checkUploadDoc,
-    updateUserByEmail,
     checkMissingFieldsInput,
-    updateDataById,
-    deleteDataById,
-    updateArrayOfData,
-    encryptData,
-    decryptData,
-    generateOtp,
-    isValidUUID,
 } from "../utils/entity.js";
 
 export const findUserByEmail = async (req, res, next) => {
@@ -25,12 +13,16 @@ export const findUserByEmail = async (req, res, next) => {
                 message: checkFields.message,
             });
         }
-
-        const user = await userModel.findOne({ email: email });
+        const modifiedEmail = email.toLowerCase()
+        const user = await userModel.findOne({ email: modifiedEmail });
         if (!user) {
             return res.status(400).json({ message: "user not found" });
         }
-        req.user = user;
+        if(user.UserStatus == UserStatus.SUSPENDED){
+            return res.status(401).json({ message: "Your account has been suspended. contact admin" });
+        }
+        const { otp, ...others} = user._doc
+        req.user = others;
         next();
     } catch (error) {
         return res.status(500).json({ message: error.message });

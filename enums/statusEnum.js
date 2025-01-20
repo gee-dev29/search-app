@@ -1,5 +1,5 @@
 export const UserStatus = {
-    ACTIVE: "active",
-    SUSPENDED: "suspended",
-    DELETED: "deleted",
+    ACTIVE : "active",
+    SUSPENDED : "suspended",
+    DELETED : "deleted",
 };

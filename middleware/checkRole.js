@@ -22,6 +22,7 @@ const superAdminRoleCheck = async (req, res, next) => {
             });
         }
         next();
+        
     } catch (error) {
         next(err);
     }

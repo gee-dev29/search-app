@@ -14,21 +14,9 @@ const activitySchema = new mongoose.Schema(
         content: {
             type: String,
             required: true,
-        },
-        sender: {
-            type: String,
-            required: true,
-        },
-        receiver: {
-            type: String,
-            required: true,
-        },
-        isRead: {
-            type: Boolean,
-            default: false,
-        },
+        }
     },
     { timestamps: true }
 );
 
-export default mongoose.model("Activity", activitySchema);
+export const activityModel =  mongoose.model("Activity", activitySchema);
