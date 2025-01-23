@@ -31,9 +31,7 @@ const branchesSchema = new mongoose.Schema(
     branchChurchURL: {
       type: String,
     },
-    socialMediaPage: {
-      type: Array,
-    },
+
     continent: {
       type: String,
       required: true,

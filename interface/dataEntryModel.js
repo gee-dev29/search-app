@@ -27,15 +27,12 @@ const dataEntrySchema = new mongoose.Schema(
       ],
       default: ApprovalStatus.PENDING,
     },
-    isChurchBranchAvailable: {
-      type: Boolean,
-      enum: ["yes", "no"],
-      default: "no",
-      required: true,
-    },
     denomination: {
       type: String,
       required: true,
+    },
+    socialMediaPage: {
+      type: Array,
     },
     yearOfEstablishment: {
       type: Number,
