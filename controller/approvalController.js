@@ -12,12 +12,10 @@ export const getApporvalData = async (req, res) => {
     let filter;
     if (status && status !== "all") {
       filter = {
-        creatorId: req.userId,
         approvalStatus: status,
       };
     } else {
       filter = {
-        creatorId: req.userId,
       };
     }
     const result = await getPaginatedDataWithMultiplePopulate(
