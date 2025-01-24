@@ -16,7 +16,7 @@ const branchesSchema = new mongoose.Schema(
       type: String,
       index: true,
     },
-    country: {
+    city: {
       type: String,
       index: true,
     },
@@ -24,10 +24,11 @@ const branchesSchema = new mongoose.Schema(
       type: String,
       index: true,
     },
-    city: {
+    country: {
       type: String,
       index: true,
     },
+
     street: {
       type: String,
     },
