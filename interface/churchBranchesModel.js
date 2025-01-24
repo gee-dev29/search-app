@@ -74,6 +74,7 @@ const branchesSchema = new mongoose.Schema(
 
 branchesSchema.index({
   nameOfBranchPastor: "text",
+  branchName: "text",
   country: "text",
   continent: "text",
   state: "text",
