@@ -24,6 +24,12 @@ const branchesSchema = new mongoose.Schema(
       type: String,
       index: true,
     },
+
+    continent: {
+      type: String,
+      required: true,
+    },
+    
     country: {
       type: String,
       index: true,
@@ -52,10 +58,6 @@ const branchesSchema = new mongoose.Schema(
       type: String,
     },
 
-    continent: {
-      type: String,
-      required: true,
-    },
 
     coordinates: {
       type: Array,
