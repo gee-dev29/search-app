@@ -12,6 +12,10 @@ const branchesSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "churches",
     },
+    branchName: {
+      type: String,
+      index: true,
+    },
     country: {
       type: String,
       index: true,
