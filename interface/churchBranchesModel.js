@@ -29,13 +29,16 @@ const branchesSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    
+
     country: {
       type: String,
       index: true,
     },
 
     street: {
+      type: String,
+    },
+    branchPopulation: {
       type: String,
     },
     nameOfBranchPastor: {
@@ -51,13 +54,10 @@ const branchesSchema = new mongoose.Schema(
     adminPosition: {
       type: String,
     },
-    branchPopulation: {
-      type: String,
-    },
+
     branchChurchURL: {
       type: String,
     },
-
 
     coordinates: {
       type: Array,
