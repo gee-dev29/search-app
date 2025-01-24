@@ -12,6 +12,21 @@ const branchesSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "churches",
     },
+    country: {
+      type: String,
+      index: true,
+    },
+    state: {
+      type: String,
+      index: true,
+    },
+    city: {
+      type: String,
+      index: true,
+    },
+    street: {
+      type: String,
+    },
     nameOfBranchPastor: {
       type: String,
       index: true,
@@ -36,21 +51,7 @@ const branchesSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    country: {
-      type: String,
-      index: true,
-    },
-    state: {
-      type: String,
-      index: true,
-    },
-    city: {
-      type: String,
-      index: true,
-    },
-    street: {
-      type: String,
-    },
+
     coordinates: {
       type: Array,
     },
