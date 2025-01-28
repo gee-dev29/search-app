@@ -36,23 +36,56 @@ export const registerAdmin = async (req, res) => {
 		// Hash the password first
 		const hashPassword = await encryptPassword(password);
 
-		const user = new userModel({
-			fullName: fullName,
+		// If _id is provided, we're updating an existing user
+		if (_id) {
+			// Prepare the update data, excluding _id and password
+			const updateData = {
+				...req.body,
+				password: hashPassword, // Update the password with the hashed value
+				email: email.toLowerCase(), // Normalize email to lowercase
+			};
+
+			// Update the user in the database
+			const user = await userModel.findOneAndUpdate({ _id }, updateData);
+
+			// Check if the user was found and updated
+			if (!user) {
+				return res.status(404).json({
+					message: "Admin not found or no changes made",
+				});
+			}
+			await logActivity({
+				by: req.user,
+				description: "Updated admin details.",
+				eventType: ActivityLogType.Create,
+				properties: updateData,
+				on: user,
+			});
+
+			return res.status(200).json({
+				message: "Admin updated successfully",
+			});
+		}
+
+		// If no _id is provided, we're creating a new user
+		const newUser = new userModel({
+			fullName,
 			email: email.toLowerCase(),
 			password: hashPassword,
-			phone: phone,
-			role: role,
+			phone,
+			role,
 		});
-		await user.save();
+
+		await newUser.save();
 		await logActivity({
 			by: req.user,
 			description: "Created a new user",
 			eventType: ActivityLogType.Create,
-			properties: user,
-			on: user,
+			properties: newUser,
+			on: newUser,
 		});
 		return res.status(201).json({
-			message: "Admin created successfuly",
+			message: "Admin created successfully",
 		});
 	} catch (error) {
 		return res.status(500).json({
