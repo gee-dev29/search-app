@@ -123,7 +123,7 @@ export const loginUser = async (req, res) => {
 		const token = jwtSign(payload);
 		await logActivity({
 			by: user._id,
-			description: "User Login",
+			description: user.fullName + " " + "Logged in",
 			eventType: ActivityLogType.Create,
 			properties: user,
 			on: user,
