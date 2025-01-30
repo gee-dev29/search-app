@@ -110,7 +110,7 @@ export const loginUser = async (req, res) => {
 		const isPasswordValid = await decryptPassword(password, user);
 
 		await logActivity({
-			by: req.user,
+			by: user._id,
 			description: "User Login",
 			eventType: ActivityLogType.Create,
 			properties: user,
@@ -129,7 +129,7 @@ export const loginUser = async (req, res) => {
 		};
 		const token = jwtSign(payload);
 		await logActivity({
-			by: req.user,
+			by: user._id,
 			description: "Admin Login",
 			eventType: ActivityLogType.Create,
 			properties: user,
