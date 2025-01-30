@@ -430,8 +430,10 @@ export const sendNotificationEmails = (
 
 export const getAllLogs = async (req, res) => {
   try {
-    const result = ActivityLog.find();
 
+    
+    const result = await ActivityLog.find()
+    
     return res.status(200).json({
       data: result,
     });

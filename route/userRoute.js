@@ -24,7 +24,7 @@ router
   .patch(jwtVerify, checkUser, superAdminRoleCheck, toggleSuspendUser)
   
 router
-  .route("/logs")
+  .route("/logs/activity")
   .get(jwtVerify, checkUser, superAdminRoleCheck, getAllLogs)
 
 router.route("/update-profile").put(jwtVerify, checkUser, updateUserProfile);
