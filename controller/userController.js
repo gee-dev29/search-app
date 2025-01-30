@@ -109,6 +109,14 @@ export const loginUser = async (req, res) => {
 		const user = req.user;
 		const isPasswordValid = await decryptPassword(password, user);
 
+		await logActivity({
+			by: req.user,
+			description: "User Login",
+			eventType: ActivityLogType.Create,
+			properties: user,
+			on: user,
+		});
+
 		if (!isPasswordValid) {
 			return res.status(401).json({
 				message: "Invalid credentials",
@@ -120,6 +128,13 @@ export const loginUser = async (req, res) => {
 			role: user.role,
 		};
 		const token = jwtSign(payload);
+		await logActivity({
+			by: req.user,
+			description: "Admin Login",
+			eventType: ActivityLogType.Create,
+			properties: user,
+			on: user,
+		});
 		return res.status(200).json({
 			message: "Admin login successful",
 			payload: {
@@ -237,6 +252,13 @@ export const deleteAdmin = async (req, res) => {
 	try {
 		const { id } = req.body;
 		await deleteDataById(id, userModel);
+		await logActivity({
+			by: req.user,
+			description: "User Deleted",
+			eventType: ActivityLogType.Create,
+			properties: {},
+			on: {},
+		});
 		return res.status(200).json({ message: "User deleted successfully" });
 	} catch (error) {}
 };
