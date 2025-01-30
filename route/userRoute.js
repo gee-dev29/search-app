@@ -25,7 +25,7 @@ router
   
 router
   .route("/logs")
-  .patch(jwtVerify, checkUser, superAdminRoleCheck, getAllLogs)
+  .get(jwtVerify, checkUser, superAdminRoleCheck, getAllLogs)
 
 router.route("/update-profile").put(jwtVerify, checkUser, updateUserProfile);
 export default router;
