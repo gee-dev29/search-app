@@ -432,7 +432,7 @@ export const getAllLogs = async (req, res) => {
   try {
 
     
-    const result = await ActivityLog.find()
+    const result = await ActivityLog.find().sort(-1)
     
     return res.status(200).json({
       data: result,
