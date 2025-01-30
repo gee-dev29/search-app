@@ -25,6 +25,7 @@ import { userModel } from "../interface/userModel.js";
 import { UserStatus } from "../enums/statusEnum.js";
 import { logActivity } from "../utils/ActivityLogger.js";
 import { ActivityLogType } from "../enums/ActivityLogType.js";
+import { ActivityLog } from "../models/ActivityLog.js";
 
 export const registerAdmin = async (req, res) => {
   try {
@@ -84,7 +85,7 @@ export const registerAdmin = async (req, res) => {
     await newUser.save();
     await logActivity({
       by: req.user,
-	  description: user.fullName + " " + "Created a new user",
+      description: user.fullName + " " + "Created a new user",
       eventType: ActivityLogType.Create,
       properties: newUser,
       on: newUser,
@@ -425,4 +426,19 @@ export const sendNotificationEmails = (
     sendEmail(superAdminNotification),
     sendEmail(newAdminNotification),
   ]);
+};
+
+export const getAllLogs = async (req, res) => {
+  try {
+    const filter = {};
+    const result = getAllFilteredData(ActivityLog, filter);
+
+    return res.status(200).json({
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
 };
