@@ -109,14 +109,7 @@ export const loginUser = async (req, res) => {
 		const user = req.user;
 		const isPasswordValid = await decryptPassword(password, user);
 
-		await logActivity({
-			by: user._id,
-			description: "User Login",
-			eventType: ActivityLogType.Create,
-			properties: user,
-			on: user,
-		});
-
+	
 		if (!isPasswordValid) {
 			return res.status(401).json({
 				message: "Invalid credentials",
@@ -130,11 +123,12 @@ export const loginUser = async (req, res) => {
 		const token = jwtSign(payload);
 		await logActivity({
 			by: user._id,
-			description: "Admin Login",
+			description: "User Login",
 			eventType: ActivityLogType.Create,
 			properties: user,
 			on: user,
 		});
+
 		return res.status(200).json({
 			message: "Admin login successful",
 			payload: {
