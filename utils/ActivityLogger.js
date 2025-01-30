@@ -6,7 +6,7 @@ export async function logActivity({ by, on, description, eventType, properties }
 	logger.by = new mongoose.Types.ObjectId(by._id);
 	if (on) {
 		logger.on = {
-			collection: on.collection.name,
+			collection: on?.collection?.name,
 			id: on._id,
 		};
 	}
