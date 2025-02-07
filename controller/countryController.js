@@ -1,4 +1,4 @@
-import { countryModel } from "../interface/countryModel.js";
+import { countryModel } from "../models/countryModel.js";
 import { getAllFilteredData } from "../utils/entity.js";
 
 export const getAllCountries = async (req, res) => {

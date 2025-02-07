@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { ApprovalStatus } from "../enums/approvalStatus.js";
 
-const dataEntrySchema = new mongoose.Schema(
+const churchModelSchema = new mongoose.Schema(
   {
     creatorId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -45,9 +45,9 @@ const dataEntrySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-dataEntrySchema.index({
+churchModelSchema.index({
   nameOfChurch: "text",
   generalOverseer: "text",
 });
 
-export const dataEntryModel = mongoose.model("churches", dataEntrySchema);
+export const churchModel = mongoose.model("churches", churchModelSchema);

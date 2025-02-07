@@ -7,11 +7,13 @@ import {
   updateDataById,
 } from "../utils/entity.js";
 import { dataEntryField } from "../utils/inputField.js";
-import { dataEntryModel } from "../interface/dataEntryModel.js";
-import { userModel } from "../interface/userModel.js";
+import { churchModel } from "../models/churchModel.js";
+import { userModel } from "../models/userModel.js";
 import { ApprovalStatus } from "../enums/approvalStatus.js";
-import { branchesModel } from "../interface/churchBranchesModel.js";
-import { approvalModel } from "../interface/approvalModel.js";
+import { branchesModel } from "../models/churchBranchesModel.js";
+import { approvalModel } from "../models/approvalModel.js";
+import lunr from "lunr";
+import { searchDatabase } from "./searchController.js";
 
 // add  data enter entry and update data entry
 export const createChurchEntry = async (req, res) => {
@@ -23,7 +25,7 @@ export const createChurchEntry = async (req, res) => {
       const churchPayload = {
         ...others,
       };
-      await updateDataById(_id, churchPayload, dataEntryModel);
+      await updateDataById(_id, churchPayload, churchModel);
       return res.status(200).json({ message: "Church updated successfully" });
     }
 
@@ -36,7 +38,7 @@ export const createChurchEntry = async (req, res) => {
       });
     }
 
-    const dataEntry = await dataEntryModel.findOne({
+    const dataEntry = await churchModel.findOne({
       generalOverseer: generalOverseer.toLowerCase(),
       churchURL: churchURL.toLowerCase(),
       nameOfChurch: nameOfChurch.toLowerCase(),
@@ -48,7 +50,7 @@ export const createChurchEntry = async (req, res) => {
       });
     }
 
-    const newDataEntry = new dataEntryModel({
+    const newDataEntry = new churchModel({
       creatorId: userId,
       ...req.body,
     });
@@ -121,7 +123,7 @@ export const getAllUserDataEntry = async (req, res) => {
         creatorId: req.userId,
       };
     }
-    const result = await getAllFilteredData(dataEntryModel, filter);
+    const result = await getAllFilteredData(churchModel, filter);
     return res.status(200).json({ payload: result });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -144,7 +146,7 @@ export const getDataByStatus = async (req, res) => {
       filter = { approvalStatus: status };
     }
     const dataEntries = await getPaginatedDataWithPopulate(
-      dataEntryModel,
+      churchModel,
       filter,
       skip,
       limit,
@@ -164,7 +166,7 @@ export const getDataEntry = async (req, res) => {
   };
 
   const data = await getAllFilteredPopulatedData(
-    dataEntryModel,
+    churchModel,
     filter,
     "creatorId",
     "user"
@@ -188,13 +190,13 @@ export const getMyAnalytics = async (req, res) => {
     const counts = {};
 
     for (const status of statuses) {
-      counts[status] = await dataEntryModel.countDocuments({
+      counts[status] = await churchModel.countDocuments({
         creatorId: id,
         approvalStatus: status,
       });
     }
 
-    const totalEntries = await dataEntryModel.countDocuments({
+    const totalEntries = await churchModel.countDocuments({
       creatorId: id,
     });
 
@@ -209,7 +211,7 @@ export const getAllAnalytics = async (req, res) => {
     const counts = {};
     const roles = ["admin", "super admin"];
 
-    const totalEntries = await dataEntryModel.countDocuments({});
+    const totalEntries = await churchModel.countDocuments({});
 
     for (const role of roles) {
       counts[role] = await userModel.countDocuments({
@@ -223,127 +225,136 @@ export const getAllAnalytics = async (req, res) => {
   }
 };
 
+// export const searchData = async (req, res) => {
+//   try {
+//     const {
+//       country,
+//       state,
+//       city,
+//       nameOfChurch,
+//       yearOfEstablishment,
+//       generalOverseer,
+//       nameOfBranchPastor,
+//       skip = 0,
+//       limit = 10,
+//       sortField = "nameOfChurch",
+//       sortOrder = "asc",
+//     } = req.query;
+
+//     // Initialize the church filter with default approval status
+//     let churchFilter = { approvalStatus: ApprovalStatus.APPROVED };
+
+//     // Dynamically build filter for church fields
+//     const churchSearchFields = {
+//       nameOfChurch,
+//       generalOverseer,
+//       yearOfEstablishment,
+//     };
+
+//     // Add case-insensitive regex search for church fields
+//     Object.entries(churchSearchFields).forEach(([key, value]) => {
+//       if (value && value.trim()) {
+//         if (key === "yearOfEstablishment") {
+//           churchFilter[key] = Number(value);
+//         } else {
+//           churchFilter[key] = { $regex: value.trim(), $options: "i" }; // Case-insensitive search with trimmed value
+//         }
+//       }
+//     });
+
+//     // Sorting: ensure valid sort field and order for churches
+//     const sortOptions = {
+//       [sortField]: sortOrder === "asc" ? 1 : -1,
+//     };
+
+//     // Fetch paginated data for churches
+//     const retrievedChurches = await getPaginatedData(
+//       churchModel,
+//       churchFilter,
+//       skip,
+//       limit,
+//       sortOptions
+//     );
+
+//     // If no churches are found, return an empty branches array
+//     const churchIds = retrievedChurches.data.map((church) => church._id);
+//     if (churchIds.length === 0) {
+//       return res.status(200).json({
+//         payload: [],
+//       });
+//     }
+
+//     // Filter for branches by church IDs
+//     let branchFilter = {
+//       churchId: { $in: churchIds }, // Match branches related to the retrieved churches
+//       approvalStatus: ApprovalStatus.APPROVED,
+//     };
+
+//     // Optional: Paginate and filter branches with search criteria
+//     const branchSearchFields = {
+//       nameOfBranchPastor,
+//       country,
+//       state,
+//       city,
+//     };
+
+//     // Add case-insensitive regex search for branch fields
+//     Object.entries(branchSearchFields).forEach(([key, value]) => {
+//       if (value && value.trim()) {
+//         branchFilter[key] = { $regex: value.trim(), $options: "i" };
+//       }
+//     });
+
+//     // Fetch paginated data for branches
+//     const retrievedBranches = await getPaginatedData(
+//       branchesModel,
+//       branchFilter,
+//       skip,
+//       limit,
+//       sortOptions
+//     );
+
+//     // Merge church data with corresponding branches
+//     const churchesWithBranches = retrievedChurches.data.map((church) => {
+//       // Find the branches associated with the current church
+//       const branchesForChurch = retrievedBranches.data.filter(
+//         (branch) => branch.churchId.toString() === church._id.toString()
+//       );
+
+//       // Return the church data with the merged branches
+//       return {
+//         ...church.toObject(), // Convert Mongoose document to plain object
+//         branches: branchesForChurch, // Attach the branches
+//       };
+//     });
+
+//     // Return the merged data
+//     return res.status(200).json({
+//       payload: churchesWithBranches,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       message: "An error occurred while processing the search request.",
+//       error: error.message,
+//     });
+//   }
+// };
+
 export const searchData = async (req, res) => {
   try {
-    const {
-      country,
-      state,
-      city,
-      nameOfChurch,
-      yearOfEstablishment,
-      generalOverseer,
-      nameOfBranchPastor,
-      skip = 0,
-      limit = 10,
-      sortField = "nameOfChurch",
-      sortOrder = "asc",
-    } = req.query;
-
-    // Initialize the church filter with default approval status
-    let churchFilter = { approvalStatus: ApprovalStatus.APPROVED };
-
-    // Dynamically build filter for church fields
-    const churchSearchFields = {
-      nameOfChurch,
-      generalOverseer,
-      yearOfEstablishment,
-    };
-
-    // Add case-insensitive regex search for church fields
-    Object.entries(churchSearchFields).forEach(([key, value]) => {
-      if (value && value.trim()) {
-        if (key === "yearOfEstablishment") {
-          churchFilter[key] = Number(value);
-        } else {
-          churchFilter[key] = { $regex: value.trim(), $options: "i" }; // Case-insensitive search with trimmed value
-        }
-      }
-    });
-
-    // Sorting: ensure valid sort field and order for churches
-    const sortOptions = {
-      [sortField]: sortOrder === "asc" ? 1 : -1,
-    };
-
-    // Fetch paginated data for churches
-    const retrievedChurches = await getPaginatedData(
-      dataEntryModel,
-      churchFilter,
-      skip,
-      limit,
-      sortOptions
-    );
-
-    // If no churches are found, return an empty branches array
-    const churchIds = retrievedChurches.data.map((church) => church._id);
-    if (churchIds.length === 0) {
-      return res.status(200).json({
-        payload: [],
-      });
-    }
-
-    // Filter for branches by church IDs
-    let branchFilter = {
-      churchId: { $in: churchIds }, // Match branches related to the retrieved churches
-      approvalStatus: ApprovalStatus.APPROVED,
-    };
-
-    // Optional: Paginate and filter branches with search criteria
-    const branchSearchFields = {
-      nameOfBranchPastor,
-      country,
-      state,
-      city,
-    };
-
-    // Add case-insensitive regex search for branch fields
-    Object.entries(branchSearchFields).forEach(([key, value]) => {
-      if (value && value.trim()) {
-        branchFilter[key] = { $regex: value.trim(), $options: "i" };
-      }
-    });
-
-    // Fetch paginated data for branches
-    const retrievedBranches = await getPaginatedData(
-      branchesModel,
-      branchFilter,
-      skip,
-      limit,
-      sortOptions
-    );
-
-    // Merge church data with corresponding branches
-    const churchesWithBranches = retrievedChurches.data.map((church) => {
-      // Find the branches associated with the current church
-      const branchesForChurch = retrievedBranches.data.filter(
-        (branch) => branch.churchId.toString() === church._id.toString()
-      );
-
-      // Return the church data with the merged branches
-      return {
-        ...church.toObject(), // Convert Mongoose document to plain object
-        branches: branchesForChurch, // Attach the branches
-      };
-    });
-
-    // Return the merged data
-    return res.status(200).json({
-      payload: churchesWithBranches,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "An error occurred while processing the search request.",
-      error: error.message,
-    });
+    const query = req.query.q;
+    const results = await searchDatabase(query);
+    res.json({ results });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
-
 
 export const getAllChurches = async (req, res) => {
   try {
     let filter = { approvalStatus: ApprovalStatus.APPROVED };
 
-    const allChurches = await getAllFilteredData(dataEntryModel, filter);
+    const allChurches = await getAllFilteredData(churchModel, filter);
 
     return res.status(200).json({
       payload: allChurches,

@@ -1,5 +1,5 @@
 import { UserStatus } from "../enums/statusEnum.js";
-import { userModel } from "../interface/userModel.js";
+import { userModel } from "../models/userModel.js";
 import {
     checkMissingFieldsInput,
 } from "../utils/entity.js";

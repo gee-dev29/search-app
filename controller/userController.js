@@ -21,7 +21,7 @@ import {
   encryptData,
   getSingleData,
 } from "../utils/entity.js";
-import { userModel } from "../interface/userModel.js";
+import { userModel } from "../models/userModel.js";
 import { UserStatus } from "../enums/statusEnum.js";
 import { logActivity } from "../utils/ActivityLogger.js";
 import { ActivityLogType } from "../enums/ActivityLogType.js";

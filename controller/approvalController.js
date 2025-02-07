@@ -1,6 +1,6 @@
-import { approvalModel } from "../interface/approvalModel.js";
-import { branchesModel } from "../interface/churchBranchesModel.js";
-import { dataEntryModel } from "../interface/dataEntryModel.js";
+import { approvalModel } from "../models/approvalModel.js";
+import { branchesModel } from "../models/churchBranchesModel.js";
+import { churchModel } from "../models/churchModel.js";
 import {
   getPaginatedDataWithMultiplePopulate,
   updateDataById,
@@ -44,7 +44,7 @@ export const updateApprovalStatus = async (req, res) => {
      await updateDataById(id, payload, approvalModel);
 
     if (approvalData.type == "church") {
-      await updateDataById(approvalData.churchId, payload, dataEntryModel).then(
+      await updateDataById(approvalData.churchId, payload, churchModel).then(
         () => {
           return res.status(200).json({
             message: "success",

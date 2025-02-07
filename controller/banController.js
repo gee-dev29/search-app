@@ -1,4 +1,4 @@
-import { bannedIpModel } from "../interface/bannedIPModel.js";
+import { bannedIpModel } from "../models/bannedIPModel.js";
 
 let maxOffenses = 3;
 
