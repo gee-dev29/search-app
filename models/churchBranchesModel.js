@@ -39,7 +39,7 @@ const branchesSchema = new mongoose.Schema(
       type: String,
     },
     branchPopulation: {
-      type: String,
+      type: Number,
     },
     nameOfBranchPastor: {
       type: String,
