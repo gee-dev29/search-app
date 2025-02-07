@@ -1,8 +1,8 @@
 import lunr from "lunr";
 import { churchModel } from "../models/churchModel.js";
 import { branchesModel } from "../models/churchBranchesModel.js";
-
 let index = null;
+let indexedData = {}; // Store original documents for retrieving results
 
 // **Function to Build Lunr Index**
 const buildSearchIndex = async () => {
@@ -22,43 +22,49 @@ const buildSearchIndex = async () => {
         this.field("pastor");
 
         churches.forEach((church) => {
-            this.add({
-                id: church._id.toString(),
+            const doc = {
+                id: `church-${church._id}`,
                 name: church.nameOfChurch,
                 overseer: church.generalOverseer,
                 denomination: church.denomination,
-                year: church.yearOfEstablishment.toString(),
-            });
+                year: church.yearOfEstablishment?.toString(),
+                type: "church",
+            };
+            indexedData[doc.id] = church;
+            this.add(doc);
         });
 
         branches.forEach((branch) => {
-            this.add({
-                id: branch._id.toString(),
+            const doc = {
+                id: `branch-${branch._id}`,
                 branchName: branch.branchName,
                 city: branch.city,
                 state: branch.state,
                 country: branch.country,
                 pastor: branch.nameOfBranchPastor,
-            });
+                type: "branch",
+            };
+            indexedData[doc.id] = branch;
+            this.add(doc);
         });
     });
 
-    console.log("Lunr Index Built");
 };
 
-// **Search Function**
+// **Enhanced Fuzzy Search Function**
 const searchDatabase = async (query) => {
     if (!index) {
         await buildSearchIndex();
     }
-    
-    const results = index.search(query);
-    const ids = results.map((res) => res.ref);
 
-    const churches = await churchModel.find({ _id: { $in: ids } });
-    const branches = await branchesModel.find({ _id: { $in: ids } });
+    // Apply fuzzy search (~1 allows for 1 character difference, ~2 allows for 2 character differences)
+    const fuzzyQuery = query
+        .split(" ")
+        .map((word) => `${word}~1`) // Apply fuzzy matching (~1 edit distance)
+        .join(" ");
 
-    return [...churches, ...branches];
+    const results = index.search(fuzzyQuery);
+    return results.map((res) => indexedData[res.ref]);
 };
 
 export { searchDatabase };
