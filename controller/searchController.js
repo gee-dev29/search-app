@@ -11,17 +11,15 @@ const buildSearchIndex = async () => {
 
     index = lunr(function () {
         this.ref("id");
-        this.field("nameOfChurch");
-        this.field("generalOverseer");
+        this.field("name");
+        this.field("overseer");
         this.field("denomination");
-        this.field("yearOfEstablishment");
+        this.field("year");
         this.field("branchName");
         this.field("city");
         this.field("state");
         this.field("country");
-        this.field("continent");
-        this.field("branchPopulation");
-        this.field("nameOfBranchPastor");
+        this.field("pastor");
 
         churches.forEach((church) => {
             const doc = {
