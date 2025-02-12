@@ -64,7 +64,7 @@ export const registerAdmin = async (req, res) => {
       await logActivity({
         by: req.user,
         description: user.fullName + " " + "Updated admin details",
-        eventType: ActivityLogType.Create,
+        eventType: ActivityLogType.Register_user,
         properties: updateData,
         on: user,
       });
@@ -88,7 +88,7 @@ export const registerAdmin = async (req, res) => {
     await logActivity({
       by: req.user,
       description: user.fullName + " " + "Created a new user",
-      eventType: ActivityLogType.Create,
+      eventType: ActivityLogType.Register_user,
       properties: newUser,
       on: newUser,
     });
@@ -165,7 +165,7 @@ export const updateUserProfile = async (req, res) => {
       await logActivity({
         by: req.user,
         description: user.fullName + " " + "Changed user password",
-        eventType: ActivityLogType.Update,
+        eventType: ActivityLogType.Profile_update,
         on: data ?? {},
       });
       const newPayload = {
@@ -187,7 +187,7 @@ export const updateUserProfile = async (req, res) => {
     await logActivity({
       by: req.user,
       description: user.fullName + " " + "Updated user's profile",
-      eventType: ActivityLogType.Update,
+      eventType: ActivityLogType.Profile_update,
       properties: payload,
       on: data ?? {},
     });
@@ -242,7 +242,7 @@ export const deleteAdmin = async (req, res) => {
     await logActivity({
       by: req.user,
       description: user.fullName + " " + "User Deleted",
-      eventType: ActivityLogType.Create,
+      eventType: ActivityLogType.Delete_Account,
       properties: {},
       on: {},
     });
@@ -347,7 +347,7 @@ export const verifyOTP = async (req, res) => {
     await logActivity({
       by: user._id,
       description: user.fullName + " " + "Logged in",
-      eventType: ActivityLogType.Create,
+      eventType: ActivityLogType.Log_in,
       properties: user,
       on: user,
     });
