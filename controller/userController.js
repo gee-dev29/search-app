@@ -136,14 +136,6 @@ export const loginUser = async (req, res) => {
 
     return res.status(200).json({
       message: "Admin login successful",
-      payload: {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        phone: user?.phone,
-        role: user.role,
-        token: token,
-      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -343,38 +335,33 @@ export const forgotPassword = async (req, res) => {
 
 export const verifyOTP = async (req, res) => {
   try {
-    const { otp, email } = req.body;
     const checkFields = checkMissingFieldsInput(verifyOTPField, req.body);
     if (!checkFields.result) {
       return res.status(400).json({
         message: checkFields.message,
       });
     }
-    const _doc = req.user;
-    if (otp !== _doc.otp.otp) {
+    const user = req.user;
+    if (req.body.otp !== user.otp) {
       return res.status(400).json({
         message: "Invalid OTP",
       });
     } else {
-      const updateData = {
-        isVerified: true,
+      const payload = {
+        id: user._id,
+        role: user.role,
       };
-      await updateDataById(_doc._id, updateData, userModel).then(() => {
-        const emailMessage = {
-          recieverEmail: email,
-          subject: "Account verification successful",
-          text: `Hello ${_doc.fullName}. ${messages.VERIFIED_OTP}`,
-        };
-        const payload = {
-          id: _doc._id,
-          role: _doc.role,
-        };
-        const token = jwtSign(payload);
-        sendEmail(emailMessage);
-        return res.status(200).json({
-          message: "OTP verification successful",
+      const token = jwtSign(payload);
+      return res.status(200).json({
+        message: "verification successful",
+        payload: {
+          id: user._id,
+          email: user.email,
+          fullName: user.fullName,
+          phone: user?.phone,
+          role: user.role,
           token: token,
-        });
+        },
       });
     }
   } catch (error) {
@@ -430,10 +417,8 @@ export const sendNotificationEmails = (
 
 export const getAllLogs = async (req, res) => {
   try {
-
-    
     const result = await ActivityLog.find().sort({ createdAt: -1 });
-    
+
     return res.status(200).json({
       data: result,
     });
