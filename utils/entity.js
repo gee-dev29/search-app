@@ -79,7 +79,7 @@ const jwtSign = (id) => {
 const generateOtp = () => {
   const value = Math.random().toString().substr(2, 4);
   const expiresIn = new Date(Date.now() + 10 * 60 * 1000);
-  return { otp: value, expiresIn: expiresIn };
+  return value;
 };
 
 
