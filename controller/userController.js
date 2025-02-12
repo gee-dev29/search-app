@@ -341,8 +341,6 @@ export const verifyOTP = async (req, res) => {
     if (req.body.otp !== user.otp) {
       return res.status(400).json({
         message: "Wrong OTP",
-        otp: req.body.otp,
-        user: user.otp,
       });
     }
 
