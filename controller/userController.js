@@ -342,7 +342,7 @@ export const verifyOTP = async (req, res) => {
       return res.status(400).json({
         message: "Wrong OTP",
         otp: req.body.otp,
-        userOtp: user.otp,
+        user: user,
       });
     }
 
