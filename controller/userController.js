@@ -81,7 +81,7 @@ export const registerAdmin = async (req, res) => {
       password: hashPassword,
       phone,
       role,
-      otp: otp
+      otp: otp,
     });
 
     await newUser.save();
@@ -128,8 +128,8 @@ export const loginUser = async (req, res) => {
       recieverEmail: user.email,
       subject: "Login OTP",
       text: `Hello ${user.fullName}. Your OTP is ${otp}. ${messages.OTP}`,
-    }
-    sendEmail(emailMessage)
+    };
+    sendEmail(emailMessage);
     return res.status(200).json({
       message: "Admin login successful",
     });
@@ -340,35 +340,35 @@ export const verifyOTP = async (req, res) => {
     const user = req.user;
     if (req.body.otp !== user.otp) {
       return res.status(400).json({
-        message: "Invalid OTP",
-      });
-    } else {
-      await logActivity({
-        by: user._id,
-        description: user.fullName + " " + "Logged in",
-        eventType: ActivityLogType.Create,
-        properties: user,
-        on: user,
-      });
-      
-      const payload = {
-        id: user._id,
-        role: user.role,
-      };
-      const token = jwtSign(payload);
-
-      return res.status(200).json({
-        message: "verification successful",
-        payload: {
-          id: user._id,
-          email: user.email,
-          fullName: user.fullName,
-          phone: user?.phone,
-          role: user.role,
-          token: token,
-        },
+        message: "Wrong OTP",
       });
     }
+
+    await logActivity({
+      by: user._id,
+      description: user.fullName + " " + "Logged in",
+      eventType: ActivityLogType.Create,
+      properties: user,
+      on: user,
+    });
+
+    const payload = {
+      id: user._id,
+      role: user.role,
+    };
+    const token = jwtSign(payload);
+
+    return res.status(200).json({
+      message: "verification successful",
+      payload: {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        phone: user?.phone,
+        role: user.role,
+        token: token,
+      },
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message,
