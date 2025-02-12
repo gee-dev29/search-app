@@ -20,6 +20,7 @@ import {
   deleteDataById,
   encryptData,
   getSingleData,
+  generateOtp,
 } from "../utils/entity.js";
 import { userModel } from "../models/userModel.js";
 import { UserStatus } from "../enums/statusEnum.js";
@@ -72,7 +73,7 @@ export const registerAdmin = async (req, res) => {
         message: "Admin updated successfully",
       });
     }
-
+    const otp = generateOtp();
     // If no _id is provided, we're creating a new user
     const newUser = new userModel({
       fullName,
@@ -80,6 +81,7 @@ export const registerAdmin = async (req, res) => {
       password: hashPassword,
       phone,
       role,
+      otp: otp
     });
 
     await newUser.save();
@@ -120,20 +122,14 @@ export const loginUser = async (req, res) => {
         message: "Invalid credentials",
       });
     }
-
-    const payload = {
-      id: user._id,
-      role: user.role,
-    };
-    const token = jwtSign(payload);
-    await logActivity({
-      by: user._id,
-      description: user.fullName + " " + "Logged in",
-      eventType: ActivityLogType.Create,
-      properties: user,
-      on: user,
-    });
-
+    const otp = generateOtp();
+    await updateDataById(user._id, { otp: otp }, userModel);
+    const emailMessage = {
+      recieverEmail: user.email,
+      subject: "Login OTP",
+      text: `Hello ${user.fullName}. Your OTP is ${otp}. ${messages.OTP}`,
+    }
+    sendEmail(emailMessage)
     return res.status(200).json({
       message: "Admin login successful",
     });
@@ -347,11 +343,20 @@ export const verifyOTP = async (req, res) => {
         message: "Invalid OTP",
       });
     } else {
+      await logActivity({
+        by: user._id,
+        description: user.fullName + " " + "Logged in",
+        eventType: ActivityLogType.Create,
+        properties: user,
+        on: user,
+      });
+      
       const payload = {
         id: user._id,
         role: user.role,
       };
       const token = jwtSign(payload);
+
       return res.status(200).json({
         message: "verification successful",
         payload: {
