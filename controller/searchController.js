@@ -18,6 +18,7 @@ const buildSearchIndex = async () => {
         this.field("branchName");
         this.field("city");
         this.field("state");
+        this.field("street");
         this.field("country");
         this.field("pastor");
 
@@ -41,6 +42,7 @@ const buildSearchIndex = async () => {
                 city: branch.city,
                 state: branch.state,
                 country: branch.country,
+                street: branch.street,
                 pastor: branch.nameOfBranchPastor,
                 type: "branch",
             };
