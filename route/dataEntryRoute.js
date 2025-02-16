@@ -11,6 +11,7 @@ import {
   getDataByStatus,
   getDataEntry,
   getMyAnalytics,
+  updateBranchStatus,
 } from "../controller/dataEntryController.js";
 import { jwtVerify } from "../middleware/jwtAuthentification.js";
 import { superAdminRoleCheck } from "../middleware/checkRole.js";
@@ -23,6 +24,7 @@ router.route("/churches").get(jwtVerify, checkUser, getAllChurches);
 
 // Routes for Branch-related actions
 router.route("/branch").post(jwtVerify, checkUser, createBranchEntry);
+router.route("/branch-status").patch(jwtVerify, checkUser, updateBranchStatus);
 router.route("/all-branches").get(jwtVerify, checkUser, getAllBranches);
 
 // General routes
