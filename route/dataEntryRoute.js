@@ -23,7 +23,6 @@ router.route("/churches").get(jwtVerify, checkUser, getAllChurches);
 
 // Routes for Branch-related actions
 router.route("/branch").post(jwtVerify, checkUser, createBranchEntry);
-router.route("/branch/:id").get(jwtVerify, checkUser, getBranchById); // Correcting GET for individual branch by ID
 router.route("/all-branches").get(jwtVerify, checkUser, getAllBranches);
 
 // General routes
