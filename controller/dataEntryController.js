@@ -365,6 +365,23 @@ export const getAllChurches = async (req, res) => {
     });
   }
 };
+export const getAllBranches = async (req, res) => {
+  try {
+    const filter = {
+      churchId: req.params.id,
+    };
+    
+    const allBranches = await getAllFilteredData(branchesModel, filter);
+
+    return res.status(200).json({
+      payload: allBranches,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+};
 
 export const getBranchById = async (req, res) => {
   try {
