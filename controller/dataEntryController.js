@@ -368,7 +368,7 @@ export const getAllChurches = async (req, res) => {
 export const getAllBranches = async (req, res) => {
   try {
     const filter = {
-      churchId: req.params.id,
+      churchId: req.query.id,
     };
     
     const allBranches = await getAllFilteredData(branchesModel, filter);
@@ -385,7 +385,7 @@ export const getAllBranches = async (req, res) => {
 
 export const getBranchById = async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = req.query.id;
     if (!id) {
       return res.status(400).json({ message: "Branch id is required" });
     }

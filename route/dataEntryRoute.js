@@ -24,12 +24,12 @@ router
   .route("/entry")
   .get(jwtVerify, checkUser, superAdminRoleCheck, getDataByStatus);
 
-router.route("/entry/:id").get(jwtVerify, checkUser, getDataEntry);
-router.route("/branch/:id").get(jwtVerify, checkUser, getBranchById);
+  router.route("/my-analytics").get(jwtVerify, checkUser, getMyAnalytics);
+  router.route("/churches").get(jwtVerify, checkUser, getAllChurches);
+  router.route("/entry/:id").get(jwtVerify, checkUser, getDataEntry);
 
-router.route("/my-analytics").get(jwtVerify, checkUser, getMyAnalytics);
-router.route("/churches").get(jwtVerify, checkUser, getAllChurches);
-router.route("/branches/:id").get(jwtVerify, checkUser, getAllBranches);
-
+  router.route("/branch").get(jwtVerify, checkUser, getBranchById);
+  router.route("/all-branches").get(jwtVerify, checkUser, getAllBranches);
+  
 router.route("/analytics").get(jwtVerify, checkUser, getAllAnalytics);
 export default router;
