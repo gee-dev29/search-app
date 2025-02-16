@@ -371,7 +371,7 @@ export const getAllBranches = async (req, res) => {
       churchId: req.query.id,
     };
     
-    const allBranches = await getAllFilteredData(branchesModel, filter);
+    const allBranches = await getAllFilteredPopulatedData(branchesModel, filter, 'creatorId', userModel);
 
     return res.status(200).json({
       payload: allBranches,
