@@ -6,6 +6,7 @@ import {
   getAllAnalytics,
   getAllChurches,
   getAllUserDataEntry,
+  getBranchById,
   getDataByStatus,
   getDataEntry,
   getMyAnalytics,
@@ -23,6 +24,7 @@ router
   .get(jwtVerify, checkUser, superAdminRoleCheck, getDataByStatus);
 
 router.route("/entry/:id").get(jwtVerify, checkUser, getDataEntry);
+router.route("/branches/:id").get(jwtVerify, checkUser, getBranchById);
 
 router.route("/my-analytics").get(jwtVerify, checkUser, getMyAnalytics);
 router.route("/churches").get(jwtVerify, checkUser, getAllChurches);

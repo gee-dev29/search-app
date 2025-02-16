@@ -365,3 +365,16 @@ export const getAllChurches = async (req, res) => {
     });
   }
 };
+
+export const getBranchById = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ message: "Branch id is required" });
+    }
+    const results = await branchesModel.findById(id);
+    res.status(200).json({ results });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
