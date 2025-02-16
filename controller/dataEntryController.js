@@ -14,12 +14,15 @@ import { branchesModel } from "../models/churchBranchesModel.js";
 import { approvalModel } from "../models/approvalModel.js";
 import lunr from "lunr";
 import { searchDatabase } from "./searchController.js";
+import { logActivity } from "../utils/ActivityLogger.js";
+import { ActivityLogType } from "../enums/ActivityLogType.js";
 
 // add  data enter entry and update data entry
 export const createChurchEntry = async (req, res) => {
   try {
     const { _id, ...others } = req.body;
     const userId = req.userId;
+    const user = req.user;
 
     if (_id) {
       const churchPayload = {
@@ -64,7 +67,13 @@ export const createChurchEntry = async (req, res) => {
     });
 
     await approvalData.save();
-
+    await logActivity({
+      by: user._id,
+      description: user.fullName + " " + "Logged in",
+      eventType: ActivityLogType.Church_entry_update,
+      properties: user,
+      on: user,
+    });
     return res.status(200).json({ message: "Data created successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -75,6 +84,7 @@ export const createBranchEntry = async (req, res) => {
   try {
     const { _id, churchId, ...others } = req.body;
     const userId = req.userId;
+    const user = req.user;
 
     if (!_id) {
       const branchData = new branchesModel({
@@ -93,6 +103,13 @@ export const createBranchEntry = async (req, res) => {
       });
       await approvalData.save();
 
+      await logActivity({
+        by: user._id,
+        description: user.fullName + " " + "Logged in",
+        eventType: ActivityLogType.Branch_entry_create,
+        properties: user,
+        on: user,
+      });
       return res.status(200).json({ message: "Branch created successfully" });
     }
 
@@ -101,7 +118,13 @@ export const createBranchEntry = async (req, res) => {
       ...others,
     };
     await updateDataById(_id, branchPayload, branchesModel);
-
+    await logActivity({
+      by: user._id,
+      description: user.fullName + " " + "Logged in",
+      eventType: ActivityLogType.Branch_entry_edit,
+      properties: user,
+      on: user,
+    });
     return res.status(200).json({ message: "Branch updated successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -294,14 +317,20 @@ export const updateBranchStatus = async (req, res) => {
     const payload = {
       approvalStatus: approvalStatus,
     };
+    const user = req.user;
 
-    await updateDataById(id, payload, branchesModel).then(
-      () => {
-        return res.status(200).json({
-          message: "success",
-        });
-      }
-    );
+    await updateDataById(id, payload, branchesModel).then(async () => {
+      await logActivity({
+        by: user._id,
+        description: user.fullName + " " + "Logged in",
+        eventType: ActivityLogType.Branch_entry_update,
+        properties: user,
+        on: user,
+      });
+      return res.status(200).json({
+        message: "success",
+      });
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
