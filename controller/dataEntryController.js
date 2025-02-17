@@ -335,3 +335,38 @@ export const updateBranchStatus = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+// approve data entry or decline data entry
+export const getSearchById = async (req, res) => {
+  try {
+    const { id } = req.query;
+    // Ensure the ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid ID format" });
+    }
+
+    // First, try to find the Church by ID
+    let result = await churchModel.findById(id);
+    if (result) {
+      return res.status(200).json({ type: "church", data: result });
+    }
+
+    // If no Church is found, try to find the Branch by ID and populate the churchId
+    result = await branchesModel
+      .findById(id)
+      .populate("churchId") // Populate the churchId field with the full church data
+      .exec();
+
+    if (result) {
+      return res.status(200).json({ type: "branch", data: result });
+    }
+
+    // If neither is found, throw an error
+    return res
+      .status(400)
+      .json({ message: "No Church or Branch found with the provided ID" });
+  } catch (error) {
+    console.error(error);
+    return null; // Or handle the error appropriately
+  }
+};

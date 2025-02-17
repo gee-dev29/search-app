@@ -1,14 +1,8 @@
 import express from "express";
-import { searchData } from "../controller/dataEntryController.js";
+import { getSearchById, searchData } from "../controller/dataEntryController.js";
 const router = express.Router();
 
-router.route("/").get(
-    // searchDataLimiter,
-    // activityLogger(
-    //     "Search Data Entry",
-    //     "Search for Church data Entry successful"
-    // ),
-    searchData
-);
+router.route("/").get(searchData);
+router.route("/searchId").get(getSearchById);
 
 export default router;
