@@ -16,6 +16,7 @@ import lunr from "lunr";
 import { searchDatabase } from "./searchController.js";
 import { logActivity } from "../utils/ActivityLogger.js";
 import { ActivityLogType } from "../enums/ActivityLogType.js";
+import mongoose from "mongoose";
 
 // add  data enter entry and update data entry
 export const createChurchEntry = async (req, res) => {
