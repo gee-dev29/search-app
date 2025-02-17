@@ -349,8 +349,8 @@ export const getSearchById = async (req, res) => {
     // First, try to find the Church by ID
     let result = await churchModel.findById(id);
     if (result) {
-      const branches = await branchesModel.findById(id);
-      const combinedData = {...branches, result}
+      const branches = await branchesModel.findById(result.id);
+      const combinedData = {...branches, ...result}
       return res.status(200).json({ type: "church", data: combinedData });
     }
 
