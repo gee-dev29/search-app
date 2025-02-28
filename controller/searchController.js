@@ -1,13 +1,17 @@
 import lunr from "lunr";
 import { churchModel } from "../models/churchModel.js";
 import { branchesModel } from "../models/churchBranchesModel.js";
+import { ApprovalStatus } from "../enums/approvalStatus.js";
 let index = null;
 let indexedData = {}; // Store original documents for retrieving results
 
 // **Function to Build Lunr Index**
 const buildSearchIndex = async () => {
-    const churches = await churchModel.find();
-    const branches = await branchesModel.find();
+    const filter = {
+        approvalStatus: ApprovalStatus.APPROVED
+    }
+    const churches = await churchModel.find(filter);
+    const branches = await branchesModel.find(filter);
 
     index = lunr(function () {
         this.ref("id");
