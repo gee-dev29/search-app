@@ -79,7 +79,7 @@ const jwtSign = (id) => {
 const generateOtp = () => {
   const value = Math.random().toString().substr(2, 4);
   const expiresIn = new Date(Date.now() + 10 * 60 * 1000);
-  return { otp: value, expiresIn: expiresIn };
+  return value;
 };
 
 
@@ -132,6 +132,7 @@ const checkMissingFieldsInput = (requiredFields, requestBody) => {
     result: true,
   };
 };
+
 const getSingleDataById = async (model, id) => {
   try {
     const data = await model.findById(id);
@@ -145,6 +146,7 @@ const getSingleData = async (model, filter) => {
   const data = await model.findOne(filter);
   return data;
 };
+
 const isValidUUID = (id) => {
   const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -161,6 +163,7 @@ const getPaginatedData = async (model, filter, skip, limit) => {
   const totalRecords = data.length;
   return { data, totalRecords };
 };
+
 const getPaginatedDataWithPopulate = async (
   model,
   filter,
@@ -178,6 +181,29 @@ const getPaginatedDataWithPopulate = async (
     .limit(limit)
     .skip(skip);
   const totalRecords = data.length;
+  return { data, totalRecords };
+};
+
+const getPaginatedDataWithMultiplePopulate = async (
+  model,
+  filter,
+  skip,
+  limit,
+  paths,
+  selectedModels
+) => {
+  const data = await model
+      .find(filter)
+      .populate(
+          paths.map((path, index) => ({
+              path: path,
+              model: selectedModels[index], // Use corresponding model for each path
+          }))
+      )
+      .limit(limit)
+      .skip(skip);
+
+  const totalRecords = await model.countDocuments();
   return { data, totalRecords };
 };
 
@@ -214,4 +240,5 @@ export {
   getSingleData,
   getPaginatedDataWithPopulate,
   getAllFilteredPopulatedData,
+  getPaginatedDataWithMultiplePopulate
 };

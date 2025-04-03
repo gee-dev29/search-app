@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
     },
+    otp: {
+      type: String,
+      required: true,
+    },
     profilePicture: {
       type: String,
     },

@@ -1,255 +1,375 @@
 import {
-    checkMissingFieldsInput,
-    getAllFilteredData,
-    getAllFilteredPopulatedData,
-    getPaginatedData,
-    getPaginatedDataWithPopulate,
-    updateDataById,
+  checkMissingFieldsInput,
+  getAllFilteredData,
+  getAllFilteredPopulatedData,
+  getPaginatedData,
+  getPaginatedDataWithPopulate,
+  updateDataById,
 } from "../utils/entity.js";
 import { dataEntryField } from "../utils/inputField.js";
-import { dataEntryModel } from "../interface/dataEntryModel.js";
-import { userModel } from "../interface/userModel.js";
+import { churchModel } from "../models/churchModel.js";
+import { userModel } from "../models/userModel.js";
 import { ApprovalStatus } from "../enums/approvalStatus.js";
+import { branchesModel } from "../models/churchBranchesModel.js";
+import { approvalModel } from "../models/approvalModel.js";
+import lunr from "lunr";
+import { searchDatabase } from "./searchController.js";
+import { logActivity } from "../utils/ActivityLogger.js";
+import { ActivityLogType } from "../enums/ActivityLogType.js";
+import mongoose from "mongoose";
 
 // add  data enter entry and update data entry
-export const createDataEntry = async (req, res) => {
-    try {
-        const { _id } = req.body;
-        if (_id) {
-            const result = await updateDataById(
-                _id,
-                { ...req.body, approvalStatus: ApprovalStatus.PENDING },
-                dataEntryModel
-            );
+export const createChurchEntry = async (req, res) => {
+  try {
+    const { _id, ...others } = req.body;
+    const userId = req.userId;
+    const user = req.user;
 
-            // await logActivity(id, "Data Entry Update");
-            if (!result) {
-                return res.status(404).json({ message: "id not found" });
-            }
-            return res
-                .status(200)
-                .json({ message: "data entry updated successfully" });
-        }
-        const userId = req.userId;
-        const { nameOfChurch, generalOverseer, churchURL } = req.body;
-
-        const checkFields = checkMissingFieldsInput(dataEntryField, req.body);
-        if (!checkFields.result) {
-            return res.status(400).json({
-                message: checkFields.message,
-            });
-        }
-
-        const dataEntry = await dataEntryModel.findOne({
-            //   yearOfEstablishment,
-            generalOverseer: generalOverseer.toLowerCase(),
-            churchURL: churchURL.toLowerCase(),
-            nameOfChurch: nameOfChurch.toLowerCase(),
-        });
-        if (dataEntry) {
-            return res.status(400).json({
-                message: "Data entry already exists",
-            });
-        }
-
-        const newDataEntry = new dataEntryModel({
-            creatorId: userId,
-            ...req.body,
-        });
-
-        await newDataEntry.save();
-        return res.status(200).json({ message: "Data created successfully" });
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
+    if (_id) {
+      const churchPayload = {
+        ...others,
+      };
+      await updateDataById(_id, churchPayload, churchModel);
+      return res.status(200).json({ message: "Church updated successfully" });
     }
+
+    const { nameOfChurch, generalOverseer, churchURL } = req.body;
+    const checkFields = checkMissingFieldsInput(dataEntryField, req.body);
+
+    if (!checkFields.result) {
+      return res.status(400).json({
+        message: checkFields.message,
+      });
+    }
+
+    const dataEntry = await churchModel.findOne({
+      generalOverseer: generalOverseer.toLowerCase(),
+      churchURL: churchURL.toLowerCase(),
+      nameOfChurch: nameOfChurch.toLowerCase(),
+    });
+
+    if (dataEntry) {
+      return res.status(400).json({
+        message: "Data entry already exists",
+      });
+    }
+
+    const newDataEntry = new churchModel({
+      creatorId: userId,
+      ...req.body,
+    });
+
+    const result = await newDataEntry.save();
+
+    const approvalData = new approvalModel({
+      creatorId: userId,
+      churchId: result._id,
+      type: "church",
+    });
+
+    await approvalData.save();
+    await logActivity({
+      by: user._id,
+      description: user.fullName + " " + "Logged in",
+      eventType: ActivityLogType.Church_entry_update,
+      properties: user,
+      on: user,
+    });
+    return res.status(200).json({ message: "Data created successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
-// approve data entry or decline data entry
-export const updateApprovalStatus = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const { approvalStatus } = req.body;
+export const createBranchEntry = async (req, res) => {
+  try {
+    const { _id, churchId, ...others } = req.body;
+    const userId = req.userId;
+    const user = req.user;
 
-        const payload = {
-            approvalStatus: approvalStatus,
-        };
-        await updateDataById(id, payload, dataEntryModel).then(() => {
-            return res.status(200).json({
-                message: "success",
-            });
-        });
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
+    if (!_id) {
+      const branchData = new branchesModel({
+        creatorId: userId,
+        churchId: churchId,
+        ...others,
+      });
+      // Save the branch
+      const branchResult = await branchData.save();
+
+      const approvalData = new approvalModel({
+        creatorId: userId,
+        churchId: churchId,
+        branchId: branchResult._id,
+        type: "branch",
+      });
+      await approvalData.save();
+
+      await logActivity({
+        by: user._id,
+        description: user.fullName + " " + "Logged in",
+        eventType: ActivityLogType.Branch_entry_create,
+        properties: user,
+        on: user,
+      });
+      return res.status(200).json({ message: "Branch created successfully" });
     }
+
+    const branchPayload = {
+      churchId: churchId,
+      ...others,
+    };
+    await updateDataById(_id, branchPayload, branchesModel);
+    await logActivity({
+      by: user._id,
+      description: user.fullName + " " + "Logged in",
+      eventType: ActivityLogType.Branch_entry_edit,
+      properties: user,
+      on: user,
+    });
+    return res.status(200).json({ message: "Branch updated successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
 // Get all data entry or get single data entry by Id
 export const getAllUserDataEntry = async (req, res) => {
-    try {
-        const { status } = req.query;
-        let filter;
-        if (status && status !== "all") {
-            filter = {
-                creatorId: req.userId,
-                approvalStatus: status,
-            };
-        } else {
-            filter = {
-                creatorId: req.userId,
-            };
-        }
-        const result = await getAllFilteredData(dataEntryModel, filter);
-        return res.status(200).json({ payload: result });
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
+  try {
+    const { status } = req.query;
+    let filter;
+    if (status && status !== "all") {
+      filter = {
+        creatorId: req.userId,
+        approvalStatus: status,
+      };
+    } else {
+      filter = {
+        creatorId: req.userId,
+      };
     }
+    const result = await getAllFilteredData(churchModel, filter);
+    return res.status(200).json({ payload: result });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
 export const getDataByStatus = async (req, res) => {
-    try {
-        const { status, limit, skip } = req.query;
+  try {
+    const { status, limit, skip } = req.query;
 
-        if (!(status || limit || skip)) {
-            return res
-                .status(400)
-                .json({ message: " Query parameters are required" });
-        }
-        let filter;
-        if (status == "all") {
-            filter = {};
-        } else {
-            filter = { approvalStatus: status };
-        }
-        const dataEntries = await getPaginatedDataWithPopulate(
-            dataEntryModel,
-            filter,
-            skip,
-            limit,
-            "creatorId",
-            "user"
-        );
-        return res.status(200).json({ payload: dataEntries });
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
+    if (!(status || limit || skip)) {
+      return res
+        .status(400)
+        .json({ message: " Query parameters are required" });
     }
+    let filter;
+    if (status == "all") {
+      filter = {};
+    } else {
+      filter = { approvalStatus: status };
+    }
+    const dataEntries = await getPaginatedDataWithPopulate(
+      churchModel,
+      filter,
+      skip,
+      limit,
+      "creatorId",
+      "user"
+    );
+    return res.status(200).json({ payload: dataEntries });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
 export const getDataEntry = async (req, res) => {
-    const id = req.params.id;
-    const filter = {
-        _id: id,
-    };
-    const data = await getAllFilteredPopulatedData(
-        dataEntryModel,
-        filter,
-        "creatorId",
-        "user"
-    );
+  const id = req.params.id;
+  const filter = {
+    _id: id,
+  };
 
-    return res.status(200).json({ payload: data[0] });
+  const data = await getAllFilteredPopulatedData(
+    churchModel,
+    filter,
+    "creatorId",
+    "user"
+  );
+  const branchFilter = {
+    churchId: id,
+  };
+
+  const findAllBranches = await getAllFilteredData(branchesModel, branchFilter);
+
+  return res
+    .status(200)
+    .json({ payload: { data: data[0], branches: findAllBranches } });
 };
 
 export const getMyAnalytics = async (req, res) => {
-    try {
-        const id = req.id;
+  try {
+    const id = req.id;
 
-        const statuses = ["pending", "approved", "rejected"];
-        const counts = {};
+    const statuses = ["pending", "approved", "rejected"];
+    const counts = {};
 
-        for (const status of statuses) {
-            counts[status] = await dataEntryModel.countDocuments({
-                creatorId: id,
-                approvalStatus: status,
-            });
-        }
-
-        const totalEntries = await dataEntryModel.countDocuments({
-            creatorId: id,
-        });
-
-        return res.status(200).json({ payload: { ...counts, totalEntries } });
-    } catch (error) {
-        return res.status(500).json({ error: "Internal Server Error" });
+    for (const status of statuses) {
+      counts[status] = await churchModel.countDocuments({
+        creatorId: id,
+        approvalStatus: status,
+      });
     }
+
+    const totalEntries = await churchModel.countDocuments({
+      creatorId: id,
+    });
+
+    return res.status(200).json({ payload: { ...counts, totalEntries } });
+  } catch (error) {
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
 export const getAllAnalytics = async (req, res) => {
-    try {
-        const counts = {};
-        const roles = ["admin", "super admin"];
+  try {
+    const counts = {};
+    const roles = ["admin", "super admin"];
 
-        const totalEntries = await dataEntryModel.countDocuments({});
+    const totalEntries = await churchModel.countDocuments({});
 
-        for (const role of roles) {
-            counts[role] = await userModel.countDocuments({
-                role: role,
-            });
-        }
-
-        return res.status(200).json({ payload: { ...counts, totalEntries } });
-    } catch (error) {
-        return res.status(500).json({ error: "Internal Server Error" });
+    for (const role of roles) {
+      counts[role] = await userModel.countDocuments({
+        role: role,
+      });
     }
+
+    return res.status(200).json({ payload: { ...counts, totalEntries } });
+  } catch (error) {
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
 export const searchData = async (req, res) => {
-    try {
-        const {
-            country,
-            state,
-            city,
-            nameOfChurch,
-            yearOfEstablishment,
-            generalOverseer,
-            nameOfBranchPastor,
-            skip = 0,
-            limit = 10,
-            sortField = "nameOfChurch",
-            sortOrder = "asc",
-        } = req.query;
+  try {
+    const query = req.query.q;
+    const results = await searchDatabase(query);
+    res.json({ results });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
-        // Initialize the filter with default approval status
-        let filter = { approvalStatus: ApprovalStatus.APPROVED };
+export const getAllChurches = async (req, res) => {
+  try {
+    let filter = { approvalStatus: ApprovalStatus.APPROVED };
 
-        // Dynamically build filter for individual fields
-        const searchFields = {
-            nameOfChurch,
-            generalOverseer,
-            nameOfBranchPastor,
-            yearOfEstablishment,
-            country,
-            state,
-            city,
-        };
+    const allChurches = await getAllFilteredData(churchModel, filter);
 
-        // Add case-insensitive regex search for specified fields
-        Object.entries(searchFields).forEach(([key, value]) => {
-            if (value && value.trim()) {
-                if (key == "yearOfEstablishment") {
-                    filter[key] = Number(value);
-                } else {
-                    filter[key] = { $regex: value, $options: "i" }; // Case-insensitive search with trimmed value
-                }
-            }
-        });
+    return res.status(200).json({
+      payload: allChurches,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+};
 
-        // // Sorting: ensure valid sort field and order
-        // const sortOptions = {
-        //     [sortField]: sortOrder === "asc" ? 1 : -1,
-        // };
+export const getAllBranches = async (req, res) => {
+  try {
+    const filter = {
+      churchId: req.query.id,
+    };
 
-        // Fetch data with filtering, pagination, and sorting
-        const retrievedData = await getPaginatedData(
-            dataEntryModel,
-            filter,
-            skip,
-            limit
-        );
-        return res.status(200).json({ payload: retrievedData });
-    } catch (error) {
-        return res.status(500).json({
-            message: "An error occurred while processing the search request.",
-            error: error.message,
-        });
+    const allBranches = await getAllFilteredPopulatedData(
+      branchesModel,
+      filter,
+      "creatorId",
+      userModel
+    );
+
+    return res.status(200).json({
+      payload: allBranches,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
+export const getBranchById = async (req, res) => {
+  try {
+    const id = req.query.id;
+    if (!id) {
+      return res.status(400).json({ message: "Branch id is required" });
     }
+    const results = await branchesModel.findById(id);
+    res.status(200).json({ results });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// approve data entry or decline data entry
+export const updateBranchStatus = async (req, res) => {
+  try {
+    const { approvalStatus, id } = req.body;
+    const payload = {
+      approvalStatus: approvalStatus,
+    };
+    const user = req.user;
+
+    await updateDataById(id, payload, branchesModel).then(async () => {
+      await logActivity({
+        by: user._id,
+        description: user.fullName + " " + "Logged in",
+        eventType: ActivityLogType.Branch_entry_update,
+        properties: user,
+        on: user,
+      });
+      return res.status(200).json({
+        message: "success",
+      });
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// approve data entry or decline data entry
+export const getSearchById = async (req, res) => {
+  try {
+    const { id } = req.query;
+    // Ensure the ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid ID format" });
+    }
+
+    // First, try to find the Church by ID
+    let result = await churchModel.findById(id);
+    if (result) {
+      const branches = await branchesModel.find({churchId: result._id});
+      const combinedData = { ...result.toObject(), branches };
+      return res.status(200).json({ type: "church", data: combinedData });
+    }
+
+    // If no Church is found, try to find the Branch by ID and populate the churchId
+    result = await branchesModel
+      .findById(id)
+      .populate("churchId") // Populate the churchId field with the full church data
+      .exec();
+
+    if (result) {
+      return res.status(200).json({ type: "branch", data: result });
+    }
+
+    // If neither is found, throw an error
+    return res
+      .status(400)
+      .json({ message: "No Church or Branch found with the provided ID" });
+  } catch (error) {
+    console.error(error);
+    return null; // Or handle the error appropriately
+  }
 };

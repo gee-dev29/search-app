@@ -20,31 +20,80 @@ import {
   deleteDataById,
   encryptData,
   getSingleData,
+  generateOtp,
 } from "../utils/entity.js";
-import { userModel } from "../interface/userModel.js";
+import { userModel } from "../models/userModel.js";
 import { UserStatus } from "../enums/statusEnum.js";
+import { logActivity } from "../utils/ActivityLogger.js";
+import { ActivityLogType } from "../enums/ActivityLogType.js";
+import { ActivityLog } from "../models/ActivityLog.js";
 
 export const registerAdmin = async (req, res) => {
   try {
-    const { fullName, phone, email, password, role } = req.body;
+    const { fullName, phone, email, password, role, _id } = req.body;
+
+    // Check for missing fields
     const checkFields = checkMissingFieldsInput(registerField, req.body);
     if (!checkFields.result) {
       return res.status(400).json({
         message: checkFields.message,
       });
     }
+
+    // Hash the password first
     const hashPassword = await encryptPassword(password);
 
-    const user = new userModel({
-      fullName: fullName,
+    // If _id is provided, we're updating an existing user
+    if (_id) {
+      // Prepare the update data, excluding _id and password
+      const updateData = {
+        ...req.body,
+        password: hashPassword, // Update the password with the hashed value
+        email: email.toLowerCase(), // Normalize email to lowercase
+      };
+
+      // Update the user in the database
+      const user = await userModel.findOneAndUpdate({ _id }, updateData);
+
+      // Check if the user was found and updated
+      if (!user) {
+        return res.status(404).json({
+          message: "Admin not found or no changes made",
+        });
+      }
+      await logActivity({
+        by: req.user,
+        description: user.fullName + " " + "Updated admin details",
+        eventType: ActivityLogType.Register_user,
+        properties: updateData,
+        on: user,
+      });
+
+      return res.status(200).json({
+        message: "Admin updated successfully",
+      });
+    }
+    const otp = generateOtp();
+    // If no _id is provided, we're creating a new user
+    const newUser = new userModel({
+      fullName,
       email: email.toLowerCase(),
       password: hashPassword,
-      phone: phone,
-      role: role,
+      phone,
+      role,
+      otp: otp,
     });
-    await user.save();
+
+    await newUser.save();
+    await logActivity({
+      by: req.user,
+      description: user.fullName + " " + "Created a new user",
+      eventType: ActivityLogType.Register_user,
+      properties: newUser,
+      on: newUser,
+    });
     return res.status(201).json({
-      message: "Admin created successfuly",
+      message: "Admin created successfully",
     });
   } catch (error) {
     return res.status(500).json({
@@ -67,28 +116,22 @@ export const loginUser = async (req, res) => {
 
     const user = req.user;
     const isPasswordValid = await decryptPassword(password, user);
-    
+
     if (!isPasswordValid) {
       return res.status(401).json({
         message: "Invalid credentials",
       });
     }
-
-    const payload = {
-      id: user._id,
-      role: user.role,
+    const otp = generateOtp();
+    await updateDataById(user._id, { otp: otp }, userModel);
+    const emailMessage = {
+      recieverEmail: user.email,
+      subject: "Login OTP",
+      text: `Hello ${user.fullName}. Your OTP is ${otp}. ${messages.OTP}`,
     };
-    const token = jwtSign(payload);
+    sendEmail(emailMessage);
     return res.status(200).json({
       message: "Admin login successful",
-      payload: {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        phone: user?.phone,
-        role: user.role,
-        token: token,
-      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -119,6 +162,12 @@ export const updateUserProfile = async (req, res) => {
         password: hashPassword,
       };
       const data = await updateDataById(id, payload, userModel);
+      await logActivity({
+        by: req.user,
+        description: user.fullName + " " + "Changed user password",
+        eventType: ActivityLogType.Profile_update,
+        on: data ?? {},
+      });
       const newPayload = {
         fullName: data?.fullName,
         email: data?.email,
@@ -135,6 +184,13 @@ export const updateUserProfile = async (req, res) => {
       phone: phone,
     };
     const data = await updateDataById(id, payload, userModel);
+    await logActivity({
+      by: req.user,
+      description: user.fullName + " " + "Updated user's profile",
+      eventType: ActivityLogType.Profile_update,
+      properties: payload,
+      on: data ?? {},
+    });
     const newPayload = {
       fullName: data?.fullName,
       email: data?.email,
@@ -183,6 +239,13 @@ export const deleteAdmin = async (req, res) => {
   try {
     const { id } = req.body;
     await deleteDataById(id, userModel);
+    await logActivity({
+      by: req.user,
+      description: user.fullName + " " + "User Deleted",
+      eventType: ActivityLogType.Delete_Account,
+      properties: {},
+      on: {},
+    });
     return res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {}
 };
@@ -268,40 +331,44 @@ export const forgotPassword = async (req, res) => {
 
 export const verifyOTP = async (req, res) => {
   try {
-    const { otp, email } = req.body;
     const checkFields = checkMissingFieldsInput(verifyOTPField, req.body);
     if (!checkFields.result) {
       return res.status(400).json({
         message: checkFields.message,
       });
     }
-    const _doc = req.user;
-    if (otp !== _doc.otp.otp) {
+    const user = req.user;
+    if (req.body.otp !== user.otp) {
       return res.status(400).json({
-        message: "Invalid OTP",
-      });
-    } else {
-      const updateData = {
-        isVerified: true,
-      };
-      await updateDataById(_doc._id, updateData, userModel).then(() => {
-        const emailMessage = {
-          recieverEmail: email,
-          subject: "Account verification successful",
-          text: `Hello ${_doc.fullName}. ${messages.VERIFIED_OTP}`,
-        };
-        const payload = {
-          id: _doc._id,
-          role: _doc.role,
-        };
-        const token = jwtSign(payload);
-        sendEmail(emailMessage);
-        return res.status(200).json({
-          message: "OTP verification successful",
-          token: token,
-        });
+        message: "Wrong OTP",
       });
     }
+
+    await logActivity({
+      by: user._id,
+      description: user.fullName + " " + "Logged in",
+      eventType: ActivityLogType.Log_in,
+      properties: user,
+      on: user,
+    });
+
+    const payload = {
+      id: user._id,
+      role: user.role,
+    };
+    const token = jwtSign(payload);
+
+    return res.status(200).json({
+      message: "verification successful",
+      payload: {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        phone: user?.phone,
+        role: user.role,
+        token: token,
+      },
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -351,4 +418,18 @@ export const sendNotificationEmails = (
     sendEmail(superAdminNotification),
     sendEmail(newAdminNotification),
   ]);
+};
+
+export const getAllLogs = async (req, res) => {
+  try {
+    const result = await ActivityLog.find().sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
 };

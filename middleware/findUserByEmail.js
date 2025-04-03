@@ -1,5 +1,5 @@
 import { UserStatus } from "../enums/statusEnum.js";
-import { userModel } from "../interface/userModel.js";
+import { userModel } from "../models/userModel.js";
 import {
     checkMissingFieldsInput,
 } from "../utils/entity.js";
@@ -21,8 +21,7 @@ export const findUserByEmail = async (req, res, next) => {
         if(user.UserStatus == UserStatus.SUSPENDED){
             return res.status(401).json({ message: "Your account has been suspended. contact admin" });
         }
-        const { otp, ...others} = user._doc
-        req.user = others;
+        req.user = user._doc;
         next();
     } catch (error) {
         return res.status(500).json({ message: error.message });

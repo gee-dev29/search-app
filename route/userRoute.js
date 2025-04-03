@@ -4,6 +4,7 @@ import { superAdminRoleCheck } from "../middleware/checkRole.js";
 import { jwtVerify } from "../middleware/jwtAuthentification.js";
 import {
   deleteAdmin,
+  getAllLogs,
   toggleSuspendUser,
   updateUserProfile,
   viewAllUsers,
@@ -21,6 +22,10 @@ router
 router
   .route("/toggle-status")
   .patch(jwtVerify, checkUser, superAdminRoleCheck, toggleSuspendUser)
+  
+router
+  .route("/logs/activity")
+  .get(jwtVerify, checkUser, superAdminRoleCheck, getAllLogs)
 
 router.route("/update-profile").put(jwtVerify, checkUser, updateUserProfile);
 export default router;
