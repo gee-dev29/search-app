@@ -34,6 +34,12 @@ const churchModelSchema = new mongoose.Schema(
     socialMediaPage: {
       type: Array,
     },
+    churchInfo: {
+      type: String,
+    },
+    pictures: {
+      type: Array,
+    },
     yearOfEstablishment: {
       type: Number,
       required: true,
