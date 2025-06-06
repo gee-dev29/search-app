@@ -13,7 +13,7 @@ import {
   getMyAnalytics,
   updateBranchStatus,
 } from "../controller/dataEntryController.js";
-import { jwtVerify } from "../middleware/jwtAuthentification.js";
+import { jwtVerify } from "../middleware/jwtAuthentication.js";
 import { superAdminRoleCheck } from "../middleware/checkRole.js";
 
 const router = express.Router();

@@ -235,7 +235,10 @@ export const getAllAnalytics = async (req, res) => {
     const counts = {};
     const roles = ["admin", "super admin"];
 
-    const totalEntries = await churchModel.countDocuments({});
+    const churchEntries = await churchModel.countDocuments({});
+    const branchEntries = await branchesModel.countDocuments({});
+
+    const totalEntries = churchEntries + branchEntries
 
     for (const role of roles) {
       counts[role] = await userModel.countDocuments({

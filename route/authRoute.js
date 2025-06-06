@@ -1,6 +1,6 @@
 import express from "express";
 import { loginUser, registerAdmin, verifyOTP } from "../controller/userController.js";
-import { jwtVerify } from "../middleware/jwtAuthentification.js";
+import { jwtVerify } from "../middleware/jwtAuthentication.js";
 import { superAdminRoleCheck } from "../middleware/checkRole.js";
 import { findUserByEmail } from "../middleware/findUserByEmail.js";
 import { checkUser } from "../middleware/checkUser.js";

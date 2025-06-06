@@ -6,7 +6,7 @@ import {
   updateDataById,
 } from "../utils/entity.js";
 
-export const getApporvalData = async (req, res) => {
+export const getApprovalData = async (req, res) => {
   try {
     const { status, skip, limit } = req.query;
     let filter;

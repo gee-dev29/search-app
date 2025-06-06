@@ -1,7 +1,7 @@
 import express from "express";
 import { checkUser } from "../middleware/checkUser.js";
 import { superAdminRoleCheck } from "../middleware/checkRole.js";
-import { jwtVerify } from "../middleware/jwtAuthentification.js";
+import { jwtVerify } from "../middleware/jwtAuthentication.js";
 import {
   deleteAdmin,
   getAllLogs,
