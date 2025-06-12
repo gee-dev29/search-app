@@ -145,7 +145,7 @@ export const deleteUser = async (req, res) => {
     const { id } = req.query;
     const payload = {
       UserStatus: UserStatus.DELETED,
-    }
+    };
     const user = await updateDataById(id, payload, userModel);
     await logActivity({
       by: req.user,
@@ -158,7 +158,7 @@ export const deleteUser = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
-}
+};
 
 //get user
 export const viewSingleUser = async (req, res) => {
@@ -241,10 +241,13 @@ export const viewAllUsers = async (req, res) => {
     const role = req.params.role;
     let filter;
     if (role == "all") {
-      filter = {};
+      filter = {
+        UserStatus: { $ne: UserStatus.DELETED }, // Exclude deleted users
+      };
     } else {
       filter = {
         role: role,
+        UserStatus: { $ne: UserStatus.DELETED }, // Exclude deleted users
       };
     }
     const users = await userModel.find(filter).select("-password");
