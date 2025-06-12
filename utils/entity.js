@@ -206,6 +206,23 @@ const getPaginatedDataWithMultiplePopulate = async (
   const totalRecords = await model.countDocuments();
   return { data, totalRecords };
 };
+const getFilteredDataWithMultiplePopulate = async (
+  model,
+  filter,
+  paths,
+  selectedModels
+) => {
+  const data = await model
+      .find(filter)
+      .populate(
+          paths.map((path, index) => ({
+              path: path,
+              model: selectedModels[index], // Use corresponding model for each path
+          }))
+      )
+
+  return data;
+};
 
 const createRegexQuery = (field) => {
   const query = {
@@ -240,5 +257,6 @@ export {
   getSingleData,
   getPaginatedDataWithPopulate,
   getAllFilteredPopulatedData,
-  getPaginatedDataWithMultiplePopulate
+  getPaginatedDataWithMultiplePopulate,
+  getFilteredDataWithMultiplePopulate
 };
