@@ -181,12 +181,11 @@ export const getAllUserDataEntry = async (req, res) => {
 
 export const getDataByStatus = async (req, res) => {
   try {
-    const { status} = req.query;
-    
+    const { status } = req.query;
+
     let filter;
     if (!status || status == "all") {
       filter = {};
-      
     } else {
       filter = { approvalStatus: status };
     }
@@ -197,7 +196,7 @@ export const getDataByStatus = async (req, res) => {
       "user"
     );
 
-    const key = 'churches:' + status;
+    const key = "churches:" + status;
     const cachedResult = await redisClient.get(key);
     if (cachedResult) {
       return res.status(200).json({ payload: JSON.parse(cachedResult) });
@@ -262,6 +261,30 @@ export const getAllAnalytics = async (req, res) => {
 
     const churchEntries = await churchModel.countDocuments({});
     const branchEntries = await branchesModel.countDocuments({});
+    const pendingChurchEntries = await churchModel.countDocuments({
+      approvalStatus: ApprovalStatus.PENDING,
+    });
+    const pendingBranchesEntries = await branchesModel.countDocuments({
+      approvalStatus: ApprovalStatus.PENDING,
+    });
+    const approvedChurchEntries = await churchModel.countDocuments({
+      approvalStatus: ApprovalStatus.APPROVED,
+    });
+    const approvedBranchesEntries = await branchesModel.countDocuments({
+      approvalStatus: ApprovalStatus.APPROVED,
+    });
+
+    const rejectedChurchEntries = await churchModel.countDocuments({
+      approvalStatus: ApprovalStatus.REJECTED,
+    });
+
+    const rejectedBranchesEntries = await churchModel.countDocuments({
+      approvalStatus: ApprovalStatus.REJECTED,
+    });
+
+    const totalPendingData = pendingBranchesEntries + pendingChurchEntries;
+    const totalRejectedData = rejectedBranchesEntries + rejectedChurchEntries;
+    const totalApprovedData = approvedBranchesEntries + approvedChurchEntries;
 
     const totalEntries = churchEntries + branchEntries;
 
@@ -271,7 +294,15 @@ export const getAllAnalytics = async (req, res) => {
       });
     }
 
-    return res.status(200).json({ payload: { ...counts, totalEntries } });
+    return res.status(200).json({
+      payload: {
+        ...counts,
+        totalEntries,
+        totalPendingData,
+        totalRejectedData,
+        totalApprovedData
+      },
+    });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
@@ -322,7 +353,7 @@ export const getBranches = async (req, res) => {
   try {
     const { status } = req.query;
 
-    if (!(status)) {
+    if (!status) {
       return res
         .status(400)
         .json({ message: " Query parameters are required" });
@@ -340,7 +371,7 @@ export const getBranches = async (req, res) => {
       "user"
     );
 
-    const key = 'branches:' + status;
+    const key = "branches:" + status;
     const cachedResult = await redisClient.get(key);
     if (cachedResult) {
       return res.status(200).json({ payload: JSON.parse(cachedResult) });
