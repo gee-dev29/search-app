@@ -330,6 +330,54 @@ export const updateAdmin = async (req, res) => {
   }
 };
 
+export const changePassword = async (req, res) => {
+  try {
+    const user = req.user;
+    const { oldPassword, password } = req.body;
+
+    // Check for missing fields
+    const checkFields = checkMissingFieldsInput(
+      ["oldPassword", "password"],
+      req.body
+    );
+    if (!checkFields.result) {
+      return res.status(400).json({
+        message: checkFields.message,
+      });
+    }
+
+    // Verify the old password
+    const isOldPasswordValid = await decryptPassword(oldPassword, user);
+    if (!isOldPasswordValid) {
+      return res.status(401).json({
+        message: "Old password is incorrect",
+      });
+    }
+
+    // Hash the new password
+    const hashNewPassword = await encryptPassword(password);
+
+    // Update the user's password
+    await updateDataById(user._id, { password: hashNewPassword }, userModel);
+
+    await logActivity({
+      by: user._id,
+      description: user.fullName + " " + "Changed password",
+      eventType: ActivityLogType.Password_change,
+      properties: {},
+      on: user,
+    });
+
+    return res.status(200).json({
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
 // forgot password
 export const forgotPassword = async (req, res) => {
   try {
