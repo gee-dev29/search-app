@@ -142,7 +142,7 @@ export const loginUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
-    const { id } = req.query;
+    const id  = req.params.id;
     const payload = {
       UserStatus: UserStatus.DELETED,
     };
