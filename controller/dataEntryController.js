@@ -157,27 +157,27 @@ export const getAllUserDataEntry = async (req, res) => {
 
 export const getDataByStatus = async (req, res) => {
   try {
-    const { status, limit, skip } = req.query;
-
-    if (!(status || limit || skip)) {
-      return res
-        .status(400)
-        .json({ message: " Query parameters are required" });
-    }
+    const { status} = req.query;
+    
     let filter;
-    if (status == "all") {
+    if (!status || status == "all") {
       filter = {};
+      
     } else {
       filter = { approvalStatus: status };
     }
-    const dataEntries = await getPaginatedDataWithPopulate(
+    const dataEntries = await getAllFilteredPopulatedData(
       churchModel,
       filter,
-      skip,
-      limit,
       "creatorId",
       "user"
     );
+
+    const key = 'churches:' + status;
+    const cachedResult = await redisClient.get(key);
+    if (cachedResult) {
+      return res.status(200).json({ payload: JSON.parse(cachedResult) });
+    }
     return res.status(200).json({ payload: dataEntries });
   } catch (error) {
     return res.status(500).json({ message: error.message });
