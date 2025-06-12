@@ -4,6 +4,7 @@ import { superAdminRoleCheck } from "../middleware/checkRole.js";
 import { jwtVerify } from "../middleware/jwtAuthentication.js";
 import {
   deleteAdmin,
+  deleteUser,
   getAllLogs,
   toggleSuspendUser,
   updateUserPermissions,
@@ -46,6 +47,6 @@ router.delete(
   checkUser,
   checkPermission(Permissions.DELETE_USERS),
   superAdminRoleCheck,
-  deleteAdmin
+  deleteUser
 );
 export default router;

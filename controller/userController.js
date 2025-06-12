@@ -143,10 +143,6 @@ export const loginUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.query;
-    const user = await getSingleData(userModel, id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
     const payload = {
       UserStatus: UserStatus.DELETED,
     }
