@@ -146,10 +146,10 @@ export const deleteUser = async (req, res) => {
     const payload = {
       UserStatus: UserStatus.DELETED,
     }
-    await updateDataById(id, payload, userModel);
+    const user = await updateDataById(id, payload, userModel);
     await logActivity({
       by: req.user,
-      description: user.fullName + " " + "Deleted user",
+      description: user?.fullName + " " + "Deleted user",
       eventType: ActivityLogType.Delete_Account,
       properties: {},
       on: {},
