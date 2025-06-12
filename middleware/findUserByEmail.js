@@ -21,6 +21,9 @@ export const findUserByEmail = async (req, res, next) => {
         if(user.UserStatus == UserStatus.SUSPENDED){
             return res.status(401).json({ message: "Your account has been suspended. contact admin" });
         }
+        if(user.UserStatus == UserStatus.DELETED){
+            return res.status(401).json({ message: "Your account has been deleted. contact admin" });
+        }
         req.user = user._doc;
         next();
     } catch (error) {
