@@ -87,7 +87,7 @@ export const registerAdmin = async (req, res) => {
     await newUser.save();
     await logActivity({
       by: req.user,
-      description: user.fullName + " " + "Created a new user",
+      description: req.user.fullName + " " + "Created a new user",
       eventType: ActivityLogType.Register_user,
       properties: newUser,
       on: newUser,
