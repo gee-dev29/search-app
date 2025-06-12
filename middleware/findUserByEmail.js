@@ -16,7 +16,7 @@ export const findUserByEmail = async (req, res, next) => {
         const modifiedEmail = email.toLowerCase()
         const user = await userModel.findOne({ email: modifiedEmail });
         if (!user) {
-            return res.status(400).json({ message: "user or password incorrect" });
+            return res.status(400).json({ message: "username or password incorrect" });
         }
         if(user.UserStatus == UserStatus.SUSPENDED){
             return res.status(401).json({ message: "Your account has been suspended. contact admin" });
