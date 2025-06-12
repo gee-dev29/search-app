@@ -34,9 +34,18 @@ router.put(
   superAdminRoleCheck,
   updateUserPermissions
 );
+
 router
-  .route("/logs/activity")
-  .get(jwtVerify, checkUser, superAdminRoleCheck, getAllLogs);
+.route("/logs/activity")
+.get(jwtVerify, checkUser, superAdminRoleCheck, getAllLogs);
 
 router.route("/update-profile").put(jwtVerify, checkUser, updateUserProfile);
+router.delete(
+  "/:id",
+  jwtVerify,
+  checkUser,
+  checkPermission(Permissions.DELETE_USERS),
+  superAdminRoleCheck,
+  deleteAdmin
+);
 export default router;
