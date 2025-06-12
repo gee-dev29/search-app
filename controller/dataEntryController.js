@@ -1,5 +1,6 @@
 import {
   checkMissingFieldsInput,
+  deleteDataById,
   getAllFilteredData,
   getAllFilteredPopulatedData,
   getPaginatedData,
@@ -128,6 +129,29 @@ export const createBranchEntry = async (req, res) => {
       on: user,
     });
     return res.status(200).json({ message: "Branch updated successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteChurch = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ message: "Church id is required" });
+    }
+    const church = await deleteDataById(id, churchModel);
+    if (!church) {
+      return res.status(404).json({ message: "Church not found" });
+    }
+    await logActivity({
+      by: req.user._id,
+      description: req.user.fullName + " " + "Deleted a church",
+      eventType: ActivityLogType.Church_entry_delete,
+      properties: req.user,
+      on: church,
+    });
+    return res.status(200).json({ message: "Church deleted successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

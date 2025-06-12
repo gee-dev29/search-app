@@ -9,6 +9,7 @@ export const ActivityLogType = {
   Branch_entry_edit: "Church Branch edited",
   Church_entry_create: "Church Created",
   Church_entry_update: "Church Updated",
+  Church_entry_delete: "Church Deleted",
   Approval_entry_update: "Approval status Update",
   Created_account: "Created account",
   Log_in: "Log in",

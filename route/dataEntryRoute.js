@@ -29,6 +29,12 @@ router
     checkUser,
     checkPermission(Permissions.CREATE_CHURCH),
     createChurchEntry
+  )
+  .delete(
+    jwtVerify,
+    checkUser,
+    checkPermission(Permissions.DELETE_CHURCH),
+    createChurchEntry
   );
 router.route("/churches").get(jwtVerify, checkUser, getAllChurches);
 
