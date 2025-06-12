@@ -180,7 +180,7 @@ const getPaginatedDataWithPopulate = async (
     })
     .limit(limit)
     .skip(skip);
-  const totalRecords = data.length;
+   const totalRecords = await model.countDocuments();
   return { data, totalRecords };
 };
 

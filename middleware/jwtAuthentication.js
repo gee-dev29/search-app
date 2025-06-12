@@ -18,6 +18,6 @@ export const jwtVerify = async (req, res, next) => {
         req.id = decoded.userId?.id;
         next();
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(401).json({ message: error.message });
     }
 };

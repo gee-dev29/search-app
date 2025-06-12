@@ -10,7 +10,9 @@ import searchRoute from "./route/searchRoute.js";
 import countriesRoute from "./route/countryRoute.js";
 import approvalRoute from "./route/approvalRoute.js";
 import dbConnection from "./connection/dbConnection.js";
+import { connectRedis } from "./connection/redisConnection.js";
 
+await connectRedis();
 const app = express();
 
 dotenv.config();
@@ -18,11 +20,11 @@ dotenv.config();
 // middleware
 app.use(cors());
 app.use(
-    bodyParser.urlencoded({
-        limit: "50mb",
-        extended: true,
-        parameterLimit: 50000,
-    })
+  bodyParser.urlencoded({
+    limit: "50mb",
+    extended: true,
+    parameterLimit: 50000,
+  })
 );
 
 app.use(bodyParser.json({ limit: "50mb" }));
@@ -38,8 +40,8 @@ app.use("/api/v1/search", searchRoute);
 app.use("/api/v1/countries", countriesRoute);
 
 app.listen(process.env.PORT || 8080, () => {
-    consola.success({
-        message: `Server started on port ${process.env.PORT || 8080}`,
-        badge: true,
-    });
+  consola.success({
+    message: `Server started on port ${process.env.PORT || 8080}`,
+    badge: true,
+  });
 });

@@ -164,7 +164,7 @@ export const updateUserProfile = async (req, res) => {
       const data = await updateDataById(id, payload, userModel);
       await logActivity({
         by: req.user,
-        description: user.fullName + " " + "Changed user password",
+        description: req.user.fullName + " " + "Changed user password",
         eventType: ActivityLogType.Profile_update,
         on: data ?? {},
       });
@@ -431,5 +431,27 @@ export const getAllLogs = async (req, res) => {
     return res.status(500).json({
       message: error.message,
     });
+  }
+};
+
+export const updateUserPermissions = async (req, res) => {
+  const { userId, permissions } = req.body;
+
+  try {
+    const user = await userModel.findByIdAndUpdate(
+      userId,
+      { permissions },
+      { new: true }
+    );
+    await logActivity({
+      by: req.user,
+      description: `${req.user?.fullName} updated ${user?.fullName} permissions `,
+      eventType: ActivityLogType.Permission_update,
+      properties: req.user,
+      on: req.user,
+    });
+    res.json({ message: "Permissions updated", user });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update permissions", error });
   }
 };

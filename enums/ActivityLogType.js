@@ -17,4 +17,5 @@ export const ActivityLogType = {
   Changed_password: "Changed password",
   Register_user: "Register user",
   Profile_update: "Profile update",
+  Permission_update: "User Permission Updated",
 };

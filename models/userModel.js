@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { UserStatus } from "../enums/statusEnum.js";
 import { Role } from "../enums/role.js";
+import { Permissions } from "../enums/permissions.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -26,6 +27,11 @@ const userSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
+    },
+    permissions: {
+      type: [String],
+      enum: Object.values(Permissions),
+      default: [],
     },
     UserStatus: {
       type: String,
