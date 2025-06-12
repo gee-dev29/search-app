@@ -260,8 +260,7 @@ export const searchData = async (req, res) => {
     const value = await redisClient.get(key);
     if (value) {
       return res.json({ results: JSON.parse(value) });
-    }
-    else{
+    } else {
       const results = await searchDatabase(query);
       // Store the results in Redis with an expiration time of 1 hour
       await redisClient.set(key, JSON.stringify(results), {
@@ -279,6 +278,11 @@ export const getAllChurches = async (req, res) => {
     let filter = { approvalStatus: ApprovalStatus.APPROVED };
 
     const allChurches = await getAllFilteredData(churchModel, filter);
+    const key = "allChurches";
+    const cachedResult = await redisClient.get(key);
+    if (cachedResult) {
+      return res.status(200).json({ payload: JSON.parse(cachedResult) });
+    }
 
     return res.status(200).json({
       payload: allChurches,
@@ -292,9 +296,9 @@ export const getAllChurches = async (req, res) => {
 
 export const getBranches = async (req, res) => {
   try {
-    const { status, limit, skip } = req.query;
+    const { status } = req.query;
 
-    if (!(status || limit || skip)) {
+    if (!(status)) {
       return res
         .status(400)
         .json({ message: " Query parameters are required" });
@@ -305,14 +309,18 @@ export const getBranches = async (req, res) => {
     } else {
       filter = { approvalStatus: status };
     }
-    const dataEntries = await getPaginatedDataWithPopulate(
+    const dataEntries = await getAllFilteredPopulatedData(
       branchesModel,
       filter,
-      skip,
-      limit,
       "creatorId",
       "user"
     );
+
+    const key = 'branches:' + status;
+    const cachedResult = await redisClient.get(key);
+    if (cachedResult) {
+      return res.status(200).json({ payload: JSON.parse(cachedResult) });
+    }
     return res.status(200).json({ payload: dataEntries });
   } catch (error) {
     return res.status(500).json({
@@ -423,10 +431,7 @@ export const getSearchById = async (req, res) => {
     console.error(error);
     return null; // Or handle the error appropriately
   }
-
-  
 };
-
 
 export const getChurchAndBranchCountByMonth = async (req, res) => {
   try {
@@ -475,8 +480,18 @@ export const getChurchAndBranchCountByMonth = async (req, res) => {
     ]);
 
     const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
 
     const monthlyData = Array.from({ length: 12 }, (_, i) => {
@@ -497,4 +512,3 @@ export const getChurchAndBranchCountByMonth = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-
