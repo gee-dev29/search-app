@@ -392,6 +392,11 @@ export const getSearchById = async (req, res) => {
       return res.status(400).json({ message: "Invalid ID format" });
     }
 
+    const key = "searchById:" + id;
+    const cachedResult = await redisClient.get(key);
+    if (cachedResult) {
+      return res.status(200).json(JSON.parse(cachedResult));
+    }
     // First, try to find the Church by ID
     let result = await churchModel.findById(id);
     if (result) {
