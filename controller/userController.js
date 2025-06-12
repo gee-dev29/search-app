@@ -119,7 +119,7 @@ export const loginUser = async (req, res) => {
 
     if (!isPasswordValid) {
       return res.status(401).json({
-        message: "Invalid credentials",
+        message: "Incorrect username or password",
       });
     }
     const otp = generateOtp();
