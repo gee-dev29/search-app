@@ -286,7 +286,7 @@ export const getAllAnalytics = async (req, res) => {
     const totalRejectedData = rejectedBranchesEntries + rejectedChurchEntries;
     const totalApprovedData = approvedBranchesEntries + approvedChurchEntries;
 
-    const totalEntries = churchEntries + branchEntries;
+  
 
     for (const role of roles) {
       counts[role] = await userModel.countDocuments({
@@ -297,7 +297,8 @@ export const getAllAnalytics = async (req, res) => {
     return res.status(200).json({
       payload: {
         ...counts,
-        totalEntries,
+        churchEntries,
+        branchEntries,
         totalPendingData,
         totalRejectedData,
         totalApprovedData
