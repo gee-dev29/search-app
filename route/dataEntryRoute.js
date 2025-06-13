@@ -3,6 +3,7 @@ import { checkUser } from "../middleware/checkUser.js";
 import {
   createBranchEntry,
   createChurchEntry,
+  deleteChurch,
   getAllAnalytics,
   getAllBranches,
   getAllChurches,
@@ -34,7 +35,7 @@ router
     jwtVerify,
     checkUser,
     checkPermission(Permissions.DELETE_CHURCH),
-    createChurchEntry
+    deleteChurch
   );
 router.route("/churches").get(jwtVerify, checkUser, getAllChurches);
 
