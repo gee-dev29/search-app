@@ -1,5 +1,6 @@
 import {
   checkMissingFieldsInput,
+  deleteDataById,
   getAllFilteredData,
   getAllFilteredPopulatedData,
   getPaginatedData,
@@ -17,6 +18,7 @@ import { searchDatabase } from "./searchController.js";
 import { logActivity } from "../utils/ActivityLogger.js";
 import { ActivityLogType } from "../enums/ActivityLogType.js";
 import mongoose from "mongoose";
+import { redisClient } from "../connection/redisConnection.js";
 
 // add  data enter entry and update data entry
 export const createChurchEntry = async (req, res) => {
@@ -132,6 +134,29 @@ export const createBranchEntry = async (req, res) => {
   }
 };
 
+export const deleteChurch = async (req, res) => {
+  try {
+    const id = req.query.id;
+    if (!id) {
+      return res.status(400).json({ message: "Church id is required" });
+    }
+    const church = await deleteDataById(id, churchModel);
+    if (!church) {
+      return res.status(404).json({ message: "Church not found" });
+    }
+    await logActivity({
+      by: req.user._id,
+      description: req.user.fullName + " " + "Deleted a church",
+      eventType: ActivityLogType.Church_entry_delete,
+      properties: req.user,
+      on: church,
+    });
+    return res.status(200).json({ message: "Church deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 // Get all data entry or get single data entry by Id
 export const getAllUserDataEntry = async (req, res) => {
   try {
@@ -156,27 +181,26 @@ export const getAllUserDataEntry = async (req, res) => {
 
 export const getDataByStatus = async (req, res) => {
   try {
-    const { status, limit, skip } = req.query;
+    const { status } = req.query;
 
-    if (!(status || limit || skip)) {
-      return res
-        .status(400)
-        .json({ message: " Query parameters are required" });
-    }
     let filter;
-    if (status == "all") {
+    if (!status || status == "all") {
       filter = {};
     } else {
       filter = { approvalStatus: status };
     }
-    const dataEntries = await getPaginatedDataWithPopulate(
+    const dataEntries = await getAllFilteredPopulatedData(
       churchModel,
       filter,
-      skip,
-      limit,
       "creatorId",
       "user"
     );
+
+    const key = "churches:" + status;
+    const cachedResult = await redisClient.get(key);
+    if (cachedResult) {
+      return res.status(200).json({ payload: JSON.parse(cachedResult) });
+    }
     return res.status(200).json({ payload: dataEntries });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -235,7 +259,34 @@ export const getAllAnalytics = async (req, res) => {
     const counts = {};
     const roles = ["admin", "super admin"];
 
-    const totalEntries = await churchModel.countDocuments({});
+    const churchEntries = await churchModel.countDocuments({});
+    const branchEntries = await branchesModel.countDocuments({});
+    const pendingChurchEntries = await churchModel.countDocuments({
+      approvalStatus: ApprovalStatus.PENDING,
+    });
+    const pendingBranchesEntries = await branchesModel.countDocuments({
+      approvalStatus: ApprovalStatus.PENDING,
+    });
+    const approvedChurchEntries = await churchModel.countDocuments({
+      approvalStatus: ApprovalStatus.APPROVED,
+    });
+    const approvedBranchesEntries = await branchesModel.countDocuments({
+      approvalStatus: ApprovalStatus.APPROVED,
+    });
+
+    const rejectedChurchEntries = await churchModel.countDocuments({
+      approvalStatus: ApprovalStatus.REJECTED,
+    });
+
+    const rejectedBranchesEntries = await churchModel.countDocuments({
+      approvalStatus: ApprovalStatus.REJECTED,
+    });
+
+    const totalPendingData = pendingBranchesEntries + pendingChurchEntries;
+    const totalRejectedData = rejectedBranchesEntries + rejectedChurchEntries;
+    const totalApprovedData = approvedBranchesEntries + approvedChurchEntries;
+
+  
 
     for (const role of roles) {
       counts[role] = await userModel.countDocuments({
@@ -243,7 +294,16 @@ export const getAllAnalytics = async (req, res) => {
       });
     }
 
-    return res.status(200).json({ payload: { ...counts, totalEntries } });
+    return res.status(200).json({
+      payload: {
+        ...counts,
+        churchEntries,
+        branchEntries,
+        totalPendingData,
+        totalRejectedData,
+        totalApprovedData
+      },
+    });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
@@ -252,8 +312,18 @@ export const getAllAnalytics = async (req, res) => {
 export const searchData = async (req, res) => {
   try {
     const query = req.query.q;
-    const results = await searchDatabase(query);
-    res.json({ results });
+    const key = "search:" + query.toLowerCase();
+    const value = await redisClient.get(key);
+    if (value) {
+      return res.json({ results: JSON.parse(value) });
+    } else {
+      const results = await searchDatabase(query);
+      // Store the results in Redis with an expiration time of 1 hour
+      await redisClient.set(key, JSON.stringify(results), {
+        EX: 3600, // 1 hour
+      });
+      return res.json({ results });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -264,10 +334,50 @@ export const getAllChurches = async (req, res) => {
     let filter = { approvalStatus: ApprovalStatus.APPROVED };
 
     const allChurches = await getAllFilteredData(churchModel, filter);
+    const key = "allChurches";
+    const cachedResult = await redisClient.get(key);
+    if (cachedResult) {
+      return res.status(200).json({ payload: JSON.parse(cachedResult) });
+    }
 
     return res.status(200).json({
       payload: allChurches,
     });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
+export const getBranches = async (req, res) => {
+  try {
+    const { status } = req.query;
+
+    if (!status) {
+      return res
+        .status(400)
+        .json({ message: " Query parameters are required" });
+    }
+    let filter;
+    if (status == "all") {
+      filter = {};
+    } else {
+      filter = { approvalStatus: status };
+    }
+    const dataEntries = await getAllFilteredPopulatedData(
+      branchesModel,
+      filter,
+      "creatorId",
+      "user"
+    );
+
+    const key = "branches:" + status;
+    const cachedResult = await redisClient.get(key);
+    if (cachedResult) {
+      return res.status(200).json({ payload: JSON.parse(cachedResult) });
+    }
+    return res.status(200).json({ payload: dataEntries });
   } catch (error) {
     return res.status(500).json({
       error: error.message,
@@ -346,10 +456,15 @@ export const getSearchById = async (req, res) => {
       return res.status(400).json({ message: "Invalid ID format" });
     }
 
+    const key = "searchById:" + id;
+    const cachedResult = await redisClient.get(key);
+    if (cachedResult) {
+      return res.status(200).json(JSON.parse(cachedResult));
+    }
     // First, try to find the Church by ID
     let result = await churchModel.findById(id);
     if (result) {
-      const branches = await branchesModel.find({churchId: result._id});
+      const branches = await branchesModel.find({ churchId: result._id });
       const combinedData = { ...result.toObject(), branches };
       return res.status(200).json({ type: "church", data: combinedData });
     }
@@ -371,5 +486,85 @@ export const getSearchById = async (req, res) => {
   } catch (error) {
     console.error(error);
     return null; // Or handle the error appropriately
+  }
+};
+
+export const getChurchAndBranchCountByMonth = async (req, res) => {
+  try {
+    const year = req.query.year;
+
+    if (!year || isNaN(year)) {
+      return res.status(400).json({ message: "Invalid year provided." });
+    }
+
+    const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+
+    // Helper to run aggregation
+    const getMonthlyCounts = async (Model) => {
+      return Model.aggregate([
+        {
+          $match: {
+            createdAt: {
+              $gte: startDate,
+              $lte: endDate,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: { $month: "$createdAt" },
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            month: "$_id",
+            count: 1,
+            _id: 0,
+          },
+        },
+        {
+          $sort: { month: 1 },
+        },
+      ]);
+    };
+
+    const [churchResults, branchResults] = await Promise.all([
+      getMonthlyCounts(churchModel),
+      getMonthlyCounts(branchesModel),
+    ]);
+
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+
+    const monthlyData = Array.from({ length: 12 }, (_, i) => {
+      const monthNumber = i + 1;
+
+      const church = churchResults.find((r) => r.month === monthNumber);
+      const branch = branchResults.find((r) => r.month === monthNumber);
+
+      return {
+        month: monthNames[i],
+        churches: church ? church.count : 0,
+        branches: branch ? branch.count : 0,
+      };
+    });
+
+    return res.status(200).json({ data: monthlyData });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
 };

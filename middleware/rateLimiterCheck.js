@@ -11,7 +11,7 @@ const options = {
 
 const rateLimiter = new RateLimiterMemory(options);
 
-export const rateLimitterMiddleware = (req, res, next) => {
+export const rateLimiterMiddleware = (req, res, next) => {
   rateLimiter
     .consume(req.ip)
     .then((rateLimiterRes) => {
@@ -25,7 +25,7 @@ export const rateLimitterMiddleware = (req, res, next) => {
       next()
     })
     .catch(() => {
-      res.staus(429).json({
+      res.status(429).json({
         message: TOO_MANY_REQUEST_MESSAGE,
       });
     });

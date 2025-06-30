@@ -2,75 +2,110 @@ import lunr from "lunr";
 import { churchModel } from "../models/churchModel.js";
 import { branchesModel } from "../models/churchBranchesModel.js";
 import { ApprovalStatus } from "../enums/approvalStatus.js";
-let index = null;
-let indexedData = {}; // Store original documents for retrieving results
+import { redisClient } from "../connection/redisConnection.js";
 
-// **Function to Build Lunr Index**
+let index = null;
+let indexedData = {};
+
+const REDIS_INDEX_KEY = "lunr:index";
+const REDIS_DATA_KEY = "lunr:data";
+
+// Build Lunr Index and Cache to Redis
 const buildSearchIndex = async () => {
-    const filter = {
-        approvalStatus: ApprovalStatus.APPROVED
-    }
+    const filter = { approvalStatus: ApprovalStatus.APPROVED };
     const churches = await churchModel.find(filter);
     const branches = await branchesModel.find(filter);
 
+    indexedData = {};
+
     index = lunr(function () {
         this.ref("id");
-        this.field("name");
-        this.field("overseer");
-        this.field("denomination");
-        this.field("year");
-        this.field("branchName");
-        this.field("city");
-        this.field("state");
-        this.field("street");
-        this.field("country");
-        this.field("pastor");
+        this.field("combined");
 
         churches.forEach((church) => {
+            const combined = [
+                church.nameOfChurch,
+                church.generalOverseer,
+                church.denomination,
+                church.yearOfEstablishment,
+            ].filter(Boolean).join(" ").toLowerCase();
+
             const doc = {
                 id: `church-${church._id}`,
-                name: church.nameOfChurch,
-                overseer: church.generalOverseer,
-                denomination: church.denomination,
-                year: church.yearOfEstablishment?.toString(),
-                type: "church",
+                combined,
             };
+
             indexedData[doc.id] = church;
             this.add(doc);
         });
 
         branches.forEach((branch) => {
+            const combined = [
+                branch.branchName,
+                branch.city,
+                branch.state,
+                branch.country,
+                branch.street,
+                branch.nameOfBranchPastor,
+            ].filter(Boolean).join(" ").toLowerCase();
+
             const doc = {
                 id: `branch-${branch._id}`,
-                branchName: branch.branchName,
-                city: branch.city,
-                state: branch.state,
-                country: branch.country,
-                street: branch.street,
-                pastor: branch.nameOfBranchPastor,
-                type: "branch",
+                combined,
             };
+
             indexedData[doc.id] = branch;
             this.add(doc);
         });
     });
 
+    // Cache to Redis
+    await redisClient.set(REDIS_INDEX_KEY, JSON.stringify(index.toJSON()));
+    await redisClient.set(REDIS_DATA_KEY, JSON.stringify(indexedData));
+
+    console.log("✅ Lunr index and data cached in Redis.");
 };
 
-// **Enhanced Fuzzy Search Function**
+// Search Function
 const searchDatabase = async (query) => {
-    if (!index) {
-        await buildSearchIndex();
+    // Try to load from Redis first
+    if (!index || Object.keys(indexedData).length === 0) {
+        const [indexJson, dataJson] = await Promise.all([
+            redisClient.get(REDIS_INDEX_KEY),
+            redisClient.get(REDIS_DATA_KEY),
+        ]);
+
+        if (indexJson && dataJson) {
+            index = lunr.Index.load(JSON.parse(indexJson));
+            indexedData = JSON.parse(dataJson);
+            console.log("📦 Loaded Lunr index from Redis.");
+        } else {
+            await buildSearchIndex();
+        }
     }
 
-    // Apply fuzzy search (~1 allows for 1 character difference, ~2 allows for 2 character differences)
-    const fuzzyQuery = query
-        .split(" ")
-        .map((word) => `${word}~1`) // Apply fuzzy matching (~1 edit distance)
-        .join(" ");
+    const cleanQuery = query.trim().toLowerCase();
+    console.log("🔍 Searching for:", cleanQuery);
 
-    const results = index.search(fuzzyQuery);
-    return results.map((res) => indexedData[res.ref]);
+    // Try exact match first
+    let results = index.search(`"${cleanQuery}"`);
+
+    if (results.length === 0 && cleanQuery.length > 2) {
+        const fuzzyQuery = cleanQuery
+            .split(" ")
+            .map((word) => `${word}~1`)
+            .join(" ");
+        console.log("🔁 No exact matches. Trying fuzzy:", fuzzyQuery);
+        results = index.search(fuzzyQuery);
+    }
+
+    const uniqueRefs = new Set();
+    const finalResults = results
+        .filter((res) => !uniqueRefs.has(res.ref) && uniqueRefs.add(res.ref))
+        .map((res) => indexedData[res.ref]);
+
+    console.log("✅ Found", finalResults.length, "results.");
+    return finalResults;
 };
 
 export { searchDatabase };

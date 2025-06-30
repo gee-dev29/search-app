@@ -2,13 +2,13 @@ import { approvalModel } from "../models/approvalModel.js";
 import { branchesModel } from "../models/churchBranchesModel.js";
 import { churchModel } from "../models/churchModel.js";
 import {
-  getPaginatedDataWithMultiplePopulate,
+  getFilteredDataWithMultiplePopulate,
   updateDataById,
 } from "../utils/entity.js";
 
-export const getApporvalData = async (req, res) => {
+export const getApprovalData = async (req, res) => {
   try {
-    const { status, skip, limit } = req.query;
+    const { status } = req.query;
     let filter;
     if (status && status !== "all") {
       filter = {
@@ -18,11 +18,9 @@ export const getApporvalData = async (req, res) => {
       filter = {
       };
     }
-    const result = await getPaginatedDataWithMultiplePopulate(
+    const result = await getFilteredDataWithMultiplePopulate(
       approvalModel,
       filter,
-      skip,
-      limit,
       ["creatorId", "churchId", "branchId"],
       ["user", "churches", "branches"]
     );

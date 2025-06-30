@@ -87,7 +87,7 @@ export const registerAdmin = async (req, res) => {
     await newUser.save();
     await logActivity({
       by: req.user,
-      description: user.fullName + " " + "Created a new user",
+      description: req.user.fullName + " " + "Created a new user",
       eventType: ActivityLogType.Register_user,
       properties: newUser,
       on: newUser,
@@ -119,7 +119,7 @@ export const loginUser = async (req, res) => {
 
     if (!isPasswordValid) {
       return res.status(401).json({
-        message: "Invalid credentials",
+        message: "Incorrect username or password",
       });
     }
     const otp = generateOtp();
@@ -137,6 +137,26 @@ export const loginUser = async (req, res) => {
     return res.status(500).json({
       message: error.message,
     });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const id  = req.params.id;
+    const payload = {
+      UserStatus: UserStatus.DELETED,
+    };
+    const user = await updateDataById(id, payload, userModel);
+    await logActivity({
+      by: req.user,
+      description: user?.fullName + " " + "Deleted user",
+      eventType: ActivityLogType.Delete_Account,
+      properties: {},
+      on: {},
+    });
+    return res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -164,7 +184,7 @@ export const updateUserProfile = async (req, res) => {
       const data = await updateDataById(id, payload, userModel);
       await logActivity({
         by: req.user,
-        description: user.fullName + " " + "Changed user password",
+        description: req.user.fullName + " " + "Changed user password",
         eventType: ActivityLogType.Profile_update,
         on: data ?? {},
       });
@@ -221,10 +241,13 @@ export const viewAllUsers = async (req, res) => {
     const role = req.params.role;
     let filter;
     if (role == "all") {
-      filter = {};
+      filter = {
+        UserStatus: { $ne: UserStatus.DELETED }, // Exclude deleted users
+      };
     } else {
       filter = {
         role: role,
+        UserStatus: { $ne: UserStatus.DELETED }, // Exclude deleted users
       };
     }
     const users = await userModel.find(filter).select("-password");
@@ -306,6 +329,54 @@ export const updateAdmin = async (req, res) => {
     });
   }
 };
+
+export const changePassword = async (req, res) => {
+  try {
+    const user = req.user;
+    const { oldPassword, password } = req.body;
+
+    // Check for missing fields
+    const checkFields = checkMissingFieldsInput(
+      ["oldPassword", "password"],
+      req.body
+    );
+    if (!checkFields.result) {
+      return res.status(400).json({
+        message: checkFields.message,
+      });
+    }
+
+    // Verify the old password
+    const isOldPasswordValid = await decryptPassword(oldPassword, user);
+    if (!isOldPasswordValid) {
+      return res.status(401).json({
+        message: "Old password is incorrect",
+      });
+    }
+
+    // Hash the new password
+    const hashNewPassword = await encryptPassword(password);
+
+    // Update the user's password
+    await updateDataById(user._id, { password: hashNewPassword }, userModel);
+
+    await logActivity({
+      by: user._id,
+      description: user.fullName + " " + "Changed password",
+      eventType: ActivityLogType.Password_change,
+      properties: {},
+      on: user,
+    });
+
+    return res.status(200).json({
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
 
 // forgot password
 export const forgotPassword = async (req, res) => {
@@ -431,5 +502,27 @@ export const getAllLogs = async (req, res) => {
     return res.status(500).json({
       message: error.message,
     });
+  }
+};
+
+export const updateUserPermissions = async (req, res) => {
+  const { userId, permissions } = req.body;
+
+  try {
+    const user = await userModel.findByIdAndUpdate(
+      userId,
+      { permissions },
+      { new: true }
+    );
+    await logActivity({
+      by: req.user,
+      description: `${req.user?.fullName} updated ${user?.fullName} permissions `,
+      eventType: ActivityLogType.Permission_update,
+      properties: req.user,
+      on: req.user,
+    });
+    res.json({ message: "Permissions updated", user });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update permissions", error });
   }
 };
